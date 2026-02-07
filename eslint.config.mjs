@@ -1,17 +1,16 @@
 import { FlatCompat } from "@eslint/eslintrc";
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
-import typescriptParser from "@typescript-eslint/parser";
-import importPlugin from "eslint-plugin-import";
-import jsxA11y from "eslint-plugin-jsx-a11y";
 import prettier from "eslint-plugin-prettier";
-import react from "eslint-plugin-react";
-import reactHooks from "eslint-plugin-react-hooks";
 
 const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
 });
 
 const eslintConfig = [
+  // Ignorar carpeta (payload)
+  {
+    ignores: ["src/app/(payload)/**"],
+  },
+
   ...compat.config({
     extends: ["next", "next/typescript", "next/core-web-vitals", "prettier"],
   }),
@@ -19,38 +18,8 @@ const eslintConfig = [
   // Configuración para archivos TypeScript y JavaScript
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
-    languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        window: "readonly",
-        document: "readonly",
-        localStorage: "readonly",
-        navigator: "readonly",
-        console: "readonly",
-        process: "readonly",
-        Buffer: "readonly",
-        __dirname: "readonly",
-        __filename: "readonly",
-        global: "readonly",
-        module: "readonly",
-        require: "readonly",
-        exports: "readonly",
-      },
-    },
     plugins: {
-      "@typescript-eslint": typescriptEslint,
-      import: importPlugin,
       prettier: prettier,
-      react: react,
-      "react-hooks": reactHooks,
-      "jsx-a11y": jsxA11y,
     },
     rules: {
       // Prettier rules
@@ -110,7 +79,7 @@ const eslintConfig = [
       // Import rules
       "import/no-cycle": "off",
       "import/prefer-default-export": "off",
-      "import/no-unresolved": "error",
+      "import/no-unresolved": "off", // TypeScript ya verifica esto
       "import/no-anonymous-default-export": "off",
       "import/order": [
         "warn",
@@ -167,19 +136,6 @@ const eslintConfig = [
     settings: {
       react: {
         version: "detect",
-      },
-      "import/resolver": {
-        typescript: {
-          alwaysTryTypes: true,
-          project: "./tsconfig.json",
-        },
-        node: {
-          extensions: [".js", ".jsx", ".ts", ".tsx"],
-          moduleDirectory: ["node_modules", "src/"],
-        },
-      },
-      "import/parsers": {
-        "@typescript-eslint/parser": [".ts", ".tsx"],
       },
     },
   },
