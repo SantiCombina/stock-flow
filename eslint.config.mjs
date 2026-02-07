@@ -1,6 +1,7 @@
 import { FlatCompat } from "@eslint/eslintrc";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
+import importPlugin from "eslint-plugin-import";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import prettier from "eslint-plugin-prettier";
 import react from "eslint-plugin-react";
@@ -12,7 +13,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.config({
-    extends: ["next", "next/typescript", "next/core-web-vitals"],
+    extends: ["next", "next/typescript", "next/core-web-vitals", "prettier"],
   }),
 
   // Configuración para archivos TypeScript y JavaScript
@@ -45,6 +46,7 @@ const eslintConfig = [
     },
     plugins: {
       "@typescript-eslint": typescriptEslint,
+      import: importPlugin,
       prettier: prettier,
       react: react,
       "react-hooks": reactHooks,
