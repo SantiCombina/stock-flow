@@ -1,17 +1,21 @@
+import { AppLayout } from '@/components/layout/app-layout';
+import { getFeatureFlags } from '@/lib/features';
+
 import './globals.css';
 
 export const metadata = {
-  description: 'A blank template using Payload in a Next.js app.',
-  title: 'Payload Blank Template',
+  description: 'Sistema de gestión de inventario',
+  title: 'Stocker',
 };
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props;
+  const features = getFeatureFlags();
 
   return (
-    <html lang="en">
+    <html lang="es">
       <body>
-        <main>{children}</main>
+        <AppLayout features={features}>{children}</AppLayout>
       </body>
     </html>
   );

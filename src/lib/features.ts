@@ -1,0 +1,21 @@
+export interface FeatureFlags {
+  products: boolean;
+  sellers: boolean;
+  assignments: boolean;
+  history: boolean;
+  sales: boolean;
+  statistics: boolean;
+  settings: boolean;
+}
+
+export function getFeatureFlags(): FeatureFlags {
+  return {
+    products: process.env.FEATURE_PRODUCTS === 'true',
+    sellers: process.env.FEATURE_SELLERS === 'true',
+    assignments: process.env.FEATURE_ASSIGNMENTS === 'true',
+    history: process.env.FEATURE_HISTORY === 'true',
+    sales: process.env.FEATURE_SALES === 'true',
+    statistics: process.env.FEATURE_STATISTICS === 'true',
+    settings: process.env.FEATURE_SETTINGS === 'true',
+  };
+}
