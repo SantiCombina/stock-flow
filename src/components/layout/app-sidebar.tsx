@@ -16,7 +16,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Sidebar,
   SidebarContent,
@@ -39,6 +38,7 @@ interface NavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   feature: FeatureKey;
+  variant?: 'default' | 'destructive';
 }
 
 const mainNavItems: NavItem[] = [
@@ -53,7 +53,7 @@ const mainNavItems: NavItem[] = [
 
 const footerNavItems: NavItem[] = [
   { title: 'Configuración', href: '/settings', icon: Settings, feature: 'settings' },
-  { title: 'Cerrar Sesión', href: '/logout', icon: LogOut, feature: null },
+  { title: 'Cerrar Sesión', href: '/logout', icon: LogOut, feature: null, variant: 'destructive' },
 ];
 
 interface AppSidebarProps {
@@ -75,31 +75,22 @@ export function AppSidebar({ features }: AppSidebarProps) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 transition-all duration-200 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-2">
-        <Link href="/" className="flex items-center justify-center gap-3 group-data-[collapsible=icon]:gap-0">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary transition-all duration-200 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
-            <Box className="h-6 w-6 text-primary-foreground transition-all duration-200 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
+      <SidebarHeader className="h-16 p-2 transition-all duration-200 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+        <Link
+          href="/"
+          className="flex h-full w-full items-center gap-2 rounded-md p-2 transition-all duration-200 hover:bg-sidebar-accent group-data-[collapsible=icon]:h-auto group-data-[collapsible=icon]:w-auto group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:hover:bg-transparent"
+        >
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">
+            <Box className="h-5 w-5 text-primary-foreground" />
           </div>
-          <div className="flex flex-col overflow-hidden transition-all duration-200 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
-            <span className="text-lg font-bold text-sidebar-foreground whitespace-nowrap">Stocker</span>
-            <span className="text-xs text-sidebar-foreground/60 whitespace-nowrap">Gestión de Inventario</span>
+          <div className="flex min-w-0 flex-col overflow-hidden transition-all duration-200 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0">
+            <span className="text-sm font-bold text-sidebar-foreground whitespace-nowrap">Stocker</span>
+            <span className="text-xs text-sidebar-foreground/60 whitespace-nowrap">Gestión de negocio</span>
           </div>
         </Link>
       </SidebarHeader>
 
-      <SidebarSeparator className="mx-0 transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0" />
-
-      <div className="overflow-hidden px-4 py-3 transition-all duration-200 group-data-[collapsible=icon]:h-0 group-data-[collapsible=icon]:py-0 group-data-[collapsible=icon]:opacity-0">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground text-xs">AD</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col whitespace-nowrap">
-            <span className="text-sm font-medium text-sidebar-foreground">Administrador</span>
-            <span className="text-xs text-sidebar-foreground/60">Dueño</span>
-          </div>
-        </div>
-      </div>
+      <SidebarSeparator className="mx-0" />
 
       <SidebarContent>
         <SidebarGroup>
@@ -123,13 +114,21 @@ export function AppSidebar({ features }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
+      <SidebarSeparator className="mx-0" />
+
       <SidebarFooter>
         <SidebarMenu>
           {filteredFooterNav.map((item) => {
             const isActive = pathname === item.href;
+            const isDestructive = item.variant === 'destructive';
             return (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.title}
+                  className={isDestructive ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10' : ''}
+                >
                   <Link href={item.href}>
                     <item.icon />
                     <span>{item.title}</span>

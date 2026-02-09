@@ -1,6 +1,3 @@
-import { AppLayout } from '@/components/layout/app-layout';
-import { getFeatureFlags } from '@/lib/features';
-
 import './globals.css';
 
 export const metadata = {
@@ -8,15 +5,12 @@ export const metadata = {
   title: 'Stocker',
 };
 
-export default async function RootLayout(props: { children: React.ReactNode }) {
+export default function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props;
-  const features = getFeatureFlags();
 
   return (
     <html lang="es">
-      <body>
-        <AppLayout features={features}>{children}</AppLayout>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
