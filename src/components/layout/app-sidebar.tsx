@@ -6,7 +6,6 @@ import {
   ClipboardList,
   History,
   LayoutDashboard,
-  LogOut,
   Package,
   Settings,
   ShoppingCart,
@@ -31,6 +30,8 @@ import {
 } from '@/components/ui/sidebar';
 import type { FeatureFlags } from '@/lib/features';
 
+import { LogoutButton } from './logout-button';
+
 type FeatureKey = keyof FeatureFlags | null;
 
 interface NavItem {
@@ -38,7 +39,6 @@ interface NavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   feature: FeatureKey;
-  variant?: 'default' | 'destructive';
 }
 
 const mainNavItems: NavItem[] = [
@@ -51,10 +51,7 @@ const mainNavItems: NavItem[] = [
   { title: 'Estadísticas', href: '/statistics', icon: BarChart3, feature: 'statistics' },
 ];
 
-const footerNavItems: NavItem[] = [
-  { title: 'Configuración', href: '/settings', icon: Settings, feature: 'settings' },
-  { title: 'Cerrar Sesión', href: '/logout', icon: LogOut, feature: null, variant: 'destructive' },
-];
+const footerNavItems: NavItem[] = [{ title: 'Configuración', href: '/settings', icon: Settings, feature: 'settings' }];
 
 interface AppSidebarProps {
   features: FeatureFlags;
@@ -120,15 +117,9 @@ export function AppSidebar({ features }: AppSidebarProps) {
         <SidebarMenu>
           {filteredFooterNav.map((item) => {
             const isActive = pathname === item.href;
-            const isDestructive = item.variant === 'destructive';
             return (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive}
-                  tooltip={item.title}
-                  className={isDestructive ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10' : ''}
-                >
+                <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
                   <Link href={item.href}>
                     <item.icon />
                     <span>{item.title}</span>
@@ -137,6 +128,9 @@ export function AppSidebar({ features }: AppSidebarProps) {
               </SidebarMenuItem>
             );
           })}
+          <SidebarMenuItem>
+            <LogoutButton />
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
