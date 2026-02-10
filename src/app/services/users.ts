@@ -61,3 +61,33 @@ export async function getUserByEmail(email: string) {
 
   return docs[0] ?? null;
 }
+
+interface LoginUserData {
+  email: string;
+  password: string;
+}
+
+interface LoginUserResult {
+  success: boolean;
+  token?: string;
+  error?: string;
+}
+
+export async function loginUser(data: LoginUserData): Promise<LoginUserResult> {
+  const payload = await getPayloadClient();
+
+  try {
+    const result = await payload.login({
+      collection: 'users',
+      data: { email: data.email, password: data.password },
+    });
+
+    if (!result.token) {
+      return { success: false, error: 'Credenciales inválidas' };
+    }
+
+    return { success: true, token: result.token };
+  } catch {
+    return { success: false, error: 'Credenciales inválidas' };
+  }
+}

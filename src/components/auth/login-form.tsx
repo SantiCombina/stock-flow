@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useAction } from 'next-safe-action/hooks';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+
+import { loginUser } from './actions';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -22,8 +24,15 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get('registered') === 'true';
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  const { execute, status, result } = useAction(loginUser, {
+    onSuccess: ({ data }) => {
+      if (data?.success) {
+        router.push('/');
+        router.refresh();
+      }
+    },
+  });
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -33,30 +42,12 @@ export function LoginForm() {
     },
   });
 
-  async function onSubmit(data: LoginFormValues) {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const result = await res.json();
-        throw new Error(result.errors?.[0]?.message || 'Credenciales inválidas');
-      }
-
-      router.push('/');
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
-    } finally {
-      setIsLoading(false);
-    }
+  function onSubmit(data: LoginFormValues) {
+    execute(data);
   }
+
+  const error = result?.data?.error;
+  const isExecuting = status === 'executing';
 
   return (
     <Card className="w-full max-w-md">
@@ -106,8 +97,8 @@ export function LoginForm() {
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Ingresando...' : 'Ingresar'}
+            <Button type="submit" className="w-full" disabled={isExecuting}>
+              {isExecuting ? 'Ingresando...' : 'Ingresar'}
             </Button>
           </form>
         </Form>

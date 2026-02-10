@@ -1,10 +1,36 @@
 'use server';
 
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
 import { markInvitationAsUsed, validateInvitation } from '@/app/services/invitations';
-import { createUser } from '@/app/services/users';
+import { createUser, loginUser as loginUserService } from '@/app/services/users';
 import { actionClient } from '@/lib/safe-action';
+
+const loginSchema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(1, 'La contraseña es requerida'),
+});
+
+export const loginUser = actionClient.schema(loginSchema).action(async ({ parsedInput }) => {
+  const { email, password } = parsedInput;
+
+  const result = await loginUserService({ email, password });
+
+  if (!result.success || !result.token) {
+    return { error: result.error ?? 'Credenciales inválidas' };
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set('payload-token', result.token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    sameSite: 'lax',
+  });
+
+  return { success: true };
+});
 
 const registerSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
