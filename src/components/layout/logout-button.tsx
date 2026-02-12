@@ -36,7 +36,10 @@ export function LogoutButton() {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <SidebarMenuButton tooltip="Cerrar Sesión" className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
+        <SidebarMenuButton
+          tooltip="Cerrar Sesión"
+          className="cursor-pointer text-red-400 hover:text-red-300 hover:bg-red-500/10"
+        >
           <LogOut />
           <span>Cerrar Sesión</span>
         </SidebarMenuButton>

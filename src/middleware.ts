@@ -64,6 +64,7 @@ export const config = {
     '/sales',
     '/statistics',
     '/settings',
+    '/profile',
     '/login',
     '/register',
   ],

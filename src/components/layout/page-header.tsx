@@ -1,10 +1,13 @@
 'use client';
 
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 
+import { useUser } from '@/components/providers/user-provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+
+import { UserDropdown } from './user-dropdown';
 
 interface PageHeaderProps {
   title: string;
@@ -12,6 +15,8 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, description }: PageHeaderProps) {
+  const user = useUser();
+
   return (
     <>
       <header className="flex h-16 items-center justify-between border-b bg-card px-6">
@@ -22,16 +27,14 @@ export function PageHeader({ title, description }: PageHeaderProps) {
             <Input placeholder="Buscar productos, vendedores..." className="w-80 pl-9" />
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" className="relative rounded-full">
             <Bell className="h-5 w-5" />
             <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
               3
             </span>
           </Button>
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
-          </Button>
+          <UserDropdown user={user} />
         </div>
       </header>
 
