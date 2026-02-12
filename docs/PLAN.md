@@ -7,54 +7,76 @@
 ## 🤝 Metodología de Trabajo
 
 **Enfoque colaborativo paso a paso:**
+
+- **NUNCA** implementar colecciones sin consultar primero al usuario
 - Cada colección se diseña en conjunto antes de implementar
 - Definimos campos, relaciones y access control conversando
 - Validamos la estructura de datos antes de codificar
 - Iteramos sobre cada fase hasta que esté completa
+
+### 🤖 Instrucciones para la IA
+
+**IMPORTANTE: Al comenzar cualquier tarea que requiera crear una colección:**
+
+1. **NO asumir la estructura del plan** - Las estructuras en este documento son referencias, NO instrucciones finales
+2. **SIEMPRE preguntar al usuario:**
+   - ¿Qué campos necesita exactamente?
+   - ¿Qué tipo de datos y validaciones?
+   - ¿Qué relaciones con otras colecciones?
+   - ¿Qué reglas de access control específicas?
+   - ¿Campos obligatorios vs opcionales?
+   - ¿Valores por defecto?
+3. **Proponer** una estructura basada en el plan como punto de partida
+4. **Esperar confirmación** antes de escribir código
+5. **Iterar** hasta que el usuario apruebe la estructura completa
 
 ---
 
 ## 📋 Resumen del Proyecto
 
 ### Visión
+
 Reemplazar las hojas de Excel desordenadas por un sistema moderno y confiable donde los owners puedan gestionar su inventario, vendedores y ventas en tiempo real.
 
 ### Cliente Principal
+
 Distribuidora de productos para mascotas con múltiples vendedores.
 
 ### Modelo de Negocio Futuro
+
 SaaS multi-tenant donde cada owner gestiona su propio negocio.
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
-| Tecnología | Versión | Uso |
-|------------|---------|-----|
-| Next.js | 15.x | Framework principal (App Router) |
-| Payload CMS | 3.75.x | Backend, Auth, Admin Panel |
-| PostgreSQL | - | Base de datos (Neon.tech) |
-| Tailwind CSS | 4.x | Estilos |
-| shadcn/ui | - | Componentes UI |
-| Zod | 3.x | Validación |
-| next-safe-action | 8.x | Server Actions tipados |
-| React Hook Form | 7.x | Formularios |
+| Tecnología       | Versión | Uso                              |
+| ---------------- | ------- | -------------------------------- |
+| Next.js          | 15.x    | Framework principal (App Router) |
+| Payload CMS      | 3.75.x  | Backend, Auth, Admin Panel       |
+| PostgreSQL       | -       | Base de datos (Neon.tech)        |
+| Tailwind CSS     | 4.x     | Estilos                          |
+| shadcn/ui        | -       | Componentes UI                   |
+| Zod              | 3.x     | Validación                       |
+| next-safe-action | 8.x     | Server Actions tipados           |
+| React Hook Form  | 7.x     | Formularios                      |
 
 ---
 
 ## 🎭 Roles de Usuario
 
-| Rol | Permisos |
-|-----|----------|
-| `admin` | Acceso total. Gestiona owners. Solo desarrolladores. |
-| `owner` | Gestiona SU negocio: productos, vendedores, asignaciones, clientes, ventas. |
-| `seller` | Registra ventas y clientes. Ve solo sus asignaciones. |
+| Rol      | Permisos                                                                    |
+| -------- | --------------------------------------------------------------------------- |
+| `admin`  | Acceso total. Gestiona owners. Solo desarrolladores.                        |
+| `owner`  | Gestiona SU negocio: productos, vendedores, asignaciones, clientes, ventas. |
+| `seller` | Registra ventas y clientes. Ve solo sus asignaciones.                       |
 
 ---
 
 ## ✅ Estado Actual (Completado)
 
 ### Infraestructura
+
 - [x] Proyecto Next.js 15 configurado
 - [x] Payload CMS 3.x integrado
 - [x] PostgreSQL (Neon.tech) conectado
@@ -62,6 +84,7 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 - [x] Feature flags sistema implementado
 
 ### Autenticación
+
 - [x] Login funcional
 - [x] Sistema de invitaciones por email (Resend)
 - [x] Registro por invitación con token
@@ -69,11 +92,13 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 - [x] Roles (admin, owner, seller)
 
 ### Colecciones Payload
+
 - [x] Users (con relación owner-seller)
 - [x] Invitations (con hooks de email)
 - [x] Media
 
 ### Layout
+
 - [x] Sidebar colapsable con navegación
 - [x] Sistema de feature flags para rutas
 - [x] PageHeader reutilizable
@@ -84,23 +109,22 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 ## 📅 Roadmap de Desarrollo
 
 ### Fase 0: Configuración Base
+
 > **Objetivo**: Sistema de configuración que permita personalizar columnas visibles por tabla.
 
 #### Tareas
+
 - [ ] **0.1** Crear colección `Settings` en Payload
   - Campos por tabla: `productsColumns`, `sellersColumns`, `salesColumns`, etc.
   - Relación con `owner` (cada owner tiene su config)
   - Valores por defecto para nuevos owners
-  
 - [ ] **0.2** Servicio de settings
   - `getSettings(ownerId)` - obtener configuración
   - `updateSettings(ownerId, data)` - actualizar configuración
-  
 - [ ] **0.3** UI de Settings
   - Lista de tablas configurables
   - Checkboxes para cada columna
   - Guardado automático o con botón
-  
 - [ ] **0.4** Hook/Context de settings
   - `useSettings()` para acceder desde cualquier componente
   - Cargar settings en layout principal
@@ -110,9 +134,11 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 ---
 
 ### Fase 1: Productos
+
 > **Objetivo**: CRUD completo de productos con control de stock.
 
-#### Colección `Products`
+#### Colección `Products` (Propuesta Inicial - Sujeta a Discusión)
+
 ```typescript
 {
   name: string;           // Nombre del producto
@@ -130,7 +156,10 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 }
 ```
 
+> ⚠️ **NOTA PARA LA IA**: Esta estructura es solo una propuesta. DEBES consultar al usuario antes de implementar para confirmar campos, tipos, validaciones y relaciones.
+
 #### Tareas
+
 - [ ] **1.1** Crear colección `Products` con access control
 - [ ] **1.2** Servicio de productos (CRUD)
 - [ ] **1.3** Tabla de productos con DataTable
@@ -147,23 +176,22 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 ---
 
 ### Fase 2: Vendedores
+
 > **Objetivo**: Gestión completa del equipo de ventas.
 
 #### Tareas
+
 - [ ] **2.1** UI de lista de vendedores
   - Tabla con datos de sellers del owner
   - Estado activo/inactivo
   - Columnas configurables
-  
 - [ ] **2.2** Invitar nuevo vendedor
   - Formulario de email
   - Usar sistema de invitaciones existente
-  
 - [ ] **2.3** Ver detalle de vendedor
   - Información básica
   - Asignaciones activas
   - Ventas realizadas (resumen)
-  
 - [ ] **2.4** Desactivar/Reactivar vendedor
 - [ ] **2.5** Eliminar vendedor (o marcar como eliminado)
 
@@ -172,9 +200,11 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 ---
 
 ### Fase 3: Clientes
+
 > **Objetivo**: Registro de clientes frecuentes por vendedor.
 
-#### Colección `Customers`
+#### Colección `Customers` (Propuesta Inicial - Sujeta a Discusión)
+
 ```typescript
 {
   name: string;           // Nombre del cliente
@@ -188,7 +218,10 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 }
 ```
 
+> ⚠️ **NOTA PARA LA IA**: Esta estructura es solo una propuesta. DEBES consultar al usuario antes de implementar para confirmar campos, tipos, validaciones y relaciones.
+
 #### Tareas
+
 - [ ] **3.1** Crear colección `Customers`
 - [ ] **3.2** Servicio de clientes
 - [ ] **3.3** UI de lista de clientes
@@ -202,9 +235,11 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 ---
 
 ### Fase 4: Asignaciones
+
 > **Objetivo**: Owner asigna productos a vendedores para que salgan a vender.
 
-#### Colección `Assignments`
+#### Colección `Assignments` (Propuesta Inicial - Sujeta a Discusión)
+
 ```typescript
 {
   seller: relationship;        // Vendedor asignado
@@ -222,7 +257,10 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 }
 ```
 
+> ⚠️ **NOTA PARA LA IA**: Esta estructura es solo una propuesta. DEBES consultar al usuario antes de implementar para confirmar campos, tipos, validaciones y relaciones.
+
 #### Tareas
+
 - [ ] **4.1** Crear colección `Assignments`
 - [ ] **4.2** Servicio de asignaciones
 - [ ] **4.3** UI de crear asignación
@@ -243,9 +281,11 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 ---
 
 ### Fase 5: Ventas
+
 > **Objetivo**: Vendedores registran ventas que actualizan el stock automáticamente.
 
-#### Colección `Sales`
+#### Colección `Sales` (Propuesta Inicial - Sujeta a Discusión)
+
 ```typescript
 {
   seller: relationship;
@@ -268,7 +308,10 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 }
 ```
 
+> ⚠️ **NOTA PARA LA IA**: Esta estructura es solo una propuesta. DEBES consultar al usuario antes de implementar para confirmar campos, tipos, validaciones y relaciones.
+
 #### Tareas
+
 - [ ] **5.1** Crear colección `Sales`
 - [ ] **5.2** Servicio de ventas
 - [ ] **5.3** UI de registrar venta (Seller)
@@ -287,9 +330,11 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 ---
 
 ### Fase 6: Historial
+
 > **Objetivo**: Registro de todos los movimientos de stock.
 
-#### Colección `StockMovements`
+#### Colección `StockMovements` (Propuesta Inicial - Sujeta a Discusión)
+
 ```typescript
 {
   product: relationship;
@@ -304,7 +349,10 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 }
 ```
 
+> ⚠️ **NOTA PARA LA IA**: Esta estructura es solo una propuesta. DEBES consultar al usuario antes de implementar para confirmar campos, tipos, validaciones y relaciones.
+
 #### Tareas
+
 - [ ] **6.1** Crear colección `StockMovements`
 - [ ] **6.2** Hooks para registrar movimientos automáticamente
   - Al crear asignación
@@ -320,25 +368,23 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 ---
 
 ### Fase 7: Dashboard y Estadísticas
+
 > **Objetivo**: Panel con métricas clave del negocio.
 
 #### Tareas
+
 - [ ] **7.1** Widget: Resumen de stock
   - Productos con stock bajo
   - Valor total de inventario
-  
 - [ ] **7.2** Widget: Ventas del período
   - Ventas de hoy/semana/mes
   - Comparativa con período anterior
-  
 - [ ] **7.3** Widget: Top productos
   - Más vendidos
   - Menos vendidos
-  
 - [ ] **7.4** Widget: Rendimiento por vendedor
   - Ventas por seller
   - Rankings
-  
 - [ ] **7.5** Gráficos básicos
   - Ventas por día/semana
   - Stock por categoría
@@ -366,47 +412,50 @@ Collections (Payload):
 
 ## 🔧 Componentes Reutilizables a Crear
 
-| Componente | Descripción | Fase |
-|------------|-------------|------|
-| `DataTable` | Tabla genérica con columnas configurables | 0 |
-| `ColumnToggle` | Selector de columnas visibles | 0 |
-| `SearchInput` | Input de búsqueda con debounce | 1 |
-| `ProductSelect` | Selector de productos con búsqueda | 4 |
-| `CustomerSelect` | Selector de clientes | 5 |
-| `StatCard` | Card de estadística | 7 |
-| `MiniChart` | Gráfico pequeño para widgets | 7 |
+| Componente       | Descripción                               | Fase |
+| ---------------- | ----------------------------------------- | ---- |
+| `DataTable`      | Tabla genérica con columnas configurables | 0    |
+| `ColumnToggle`   | Selector de columnas visibles             | 0    |
+| `SearchInput`    | Input de búsqueda con debounce            | 1    |
+| `ProductSelect`  | Selector de productos con búsqueda        | 4    |
+| `CustomerSelect` | Selector de clientes                      | 5    |
+| `StatCard`       | Card de estadística                       | 7    |
+| `MiniChart`      | Gráfico pequeño para widgets              | 7    |
 
 ---
 
 ## 📝 Notas Técnicas
 
 ### Patrón de Servicios
+
 ```typescript
 // src/app/services/[entity].ts
-export async function getAll(ownerId: number, filters?: Filters) { }
-export async function getById(id: number) { }
-export async function create(data: CreateData) { }
-export async function update(id: number, data: UpdateData) { }
-export async function remove(id: number) { }
+export async function getAll(ownerId: number, filters?: Filters) {}
+export async function getById(id: number) {}
+export async function create(data: CreateData) {}
+export async function update(id: number, data: UpdateData) {}
+export async function remove(id: number) {}
 ```
 
 ### Patrón de Server Actions
+
 ```typescript
 // src/components/[entity]/actions.ts
-'use server';
-import { actionClient } from '@/lib/safe-action';
+"use server";
+import { actionClient } from "@/lib/safe-action";
 // Usar actionClient para todas las acciones
 ```
 
 ### Access Control por Rol
+
 ```typescript
 // Todas las colecciones deben filtrar por owner
 read: ({ req: { user } }) => {
-  if (user?.role === 'admin') return true;
-  if (user?.role === 'owner') return { owner: { equals: user.id } };
-  if (user?.role === 'seller') return { owner: { equals: user.owner } };
+  if (user?.role === "admin") return true;
+  if (user?.role === "owner") return { owner: { equals: user.id } };
+  if (user?.role === "seller") return { owner: { equals: user.owner } };
   return false;
-}
+};
 ```
 
 ---
@@ -429,4 +478,4 @@ read: ({ req: { user } }) => {
 
 ---
 
-*Última actualización: Febrero 2026*
+_Última actualización: Febrero 2026_
