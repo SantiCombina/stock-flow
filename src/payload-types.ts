@@ -70,6 +70,14 @@ export interface Config {
     users: User;
     invitations: Invitation;
     media: Media;
+    brands: Brand;
+    categories: Category;
+    qualities: Quality;
+    presentations: Presentation;
+    products: Product;
+    'product-variants': ProductVariant;
+    'product-custom-fields': ProductCustomField;
+    clients: Client;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +88,14 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     invitations: InvitationsSelect<false> | InvitationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    brands: BrandsSelect<false> | BrandsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    qualities: QualitiesSelect<false> | QualitiesSelect<true>;
+    presentations: PresentationsSelect<false> | PresentationsSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    'product-variants': ProductVariantsSelect<false> | ProductVariantsSelect<true>;
+    'product-custom-fields': ProductCustomFieldsSelect<false> | ProductCustomFieldsSelect<true>;
+    clients: ClientsSelect<false> | ClientsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -192,6 +208,166 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands".
+ */
+export interface Brand {
+  id: number;
+  name: string;
+  owner?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  owner?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "qualities".
+ */
+export interface Quality {
+  id: number;
+  name: string;
+  owner?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "presentations".
+ */
+export interface Presentation {
+  id: number;
+  /**
+   * Ejemplo: 3kg, 5kg, 10kg
+   */
+  label: string;
+  /**
+   * Cantidad numérica
+   */
+  amount: number;
+  /**
+   * Unidad: kg, g, L, ml, etc.
+   */
+  unit: string;
+  product: number | Product;
+  owner?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: number;
+  name: string;
+  /**
+   * Código único del producto
+   */
+  code: string;
+  brand: number | Brand;
+  category: number | Category;
+  quality: number | Quality;
+  owner?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-variants".
+ */
+export interface ProductVariant {
+  id: number;
+  /**
+   * Código interno o SKU de la variante
+   */
+  sku?: string | null;
+  product: number | Product;
+  presentation: number | Presentation;
+  stock: number;
+  /**
+   * Precio de venta de la variante
+   */
+  price: number;
+  owner?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-custom-fields".
+ */
+export interface ProductCustomField {
+  id: number;
+  /**
+   * Nombre del campo personalizado (ej: Proteína)
+   */
+  name: string;
+  type: 'text' | 'number' | 'boolean' | 'select';
+  /**
+   * Valor del campo personalizado
+   */
+  value?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  product: number | Product;
+  owner?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clients".
+ */
+export interface Client {
+  id: number;
+  /**
+   * Nombre del cliente
+   */
+  name: string;
+  /**
+   * CUIT/CUIL para facturación
+   */
+  cuit?: string | null;
+  /**
+   * Teléfono de contacto
+   */
+  phone?: string | null;
+  /**
+   * Email de contacto
+   */
+  email?: string | null;
+  /**
+   * Dirección del cliente
+   */
+  address?: string | null;
+  /**
+   * Vendedor que creó este cliente
+   */
+  createdBy?: (number | null) | User;
+  /**
+   * Dueño del negocio
+   */
+  owner?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -225,6 +401,38 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'brands';
+        value: number | Brand;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'qualities';
+        value: number | Quality;
+      } | null)
+    | ({
+        relationTo: 'presentations';
+        value: number | Presentation;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'product-variants';
+        value: number | ProductVariant;
+      } | null)
+    | ({
+        relationTo: 'product-custom-fields';
+        value: number | ProductCustomField;
+      } | null)
+    | ({
+        relationTo: 'clients';
+        value: number | Client;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -327,6 +535,105 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands_select".
+ */
+export interface BrandsSelect<T extends boolean = true> {
+  name?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "qualities_select".
+ */
+export interface QualitiesSelect<T extends boolean = true> {
+  name?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "presentations_select".
+ */
+export interface PresentationsSelect<T extends boolean = true> {
+  label?: T;
+  amount?: T;
+  unit?: T;
+  product?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  name?: T;
+  code?: T;
+  brand?: T;
+  category?: T;
+  quality?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-variants_select".
+ */
+export interface ProductVariantsSelect<T extends boolean = true> {
+  sku?: T;
+  product?: T;
+  presentation?: T;
+  stock?: T;
+  price?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-custom-fields_select".
+ */
+export interface ProductCustomFieldsSelect<T extends boolean = true> {
+  name?: T;
+  type?: T;
+  value?: T;
+  product?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clients_select".
+ */
+export interface ClientsSelect<T extends boolean = true> {
+  name?: T;
+  cuit?: T;
+  phone?: T;
+  email?: T;
+  address?: T;
+  createdBy?: T;
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

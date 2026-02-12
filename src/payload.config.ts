@@ -8,8 +8,16 @@ import { uploadthingStorage } from '@payloadcms/storage-uploadthing';
 import { buildConfig } from 'payload';
 import sharp from 'sharp';
 
+import { Brands } from './collections/Brands';
+import { Categories } from './collections/Categories';
+import { Clients } from './collections/Clients';
 import { Invitations } from './collections/Invitations';
 import { Media } from './collections/Media';
+import { Presentations } from './collections/Presentations';
+import { ProductCustomFields } from './collections/ProductCustomFields';
+import { Products } from './collections/Products';
+import { ProductVariants } from './collections/ProductVariants';
+import { Qualities } from './collections/Qualities';
 import { Users } from './collections/Users';
 
 const filename = fileURLToPath(import.meta.url);
@@ -22,7 +30,19 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Invitations, Media],
+  collections: [
+    Users,
+    Invitations,
+    Media,
+    Brands,
+    Categories,
+    Qualities,
+    Presentations,
+    Products,
+    ProductVariants,
+    ProductCustomFields,
+    Clients,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
