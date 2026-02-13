@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAction } from 'next-safe-action/hooks';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -25,14 +26,8 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const registered = searchParams.get('registered') === 'true';
 
-  const { execute, status, result } = useAction(loginUser, {
-    onSuccess: ({ data }) => {
-      if (data?.success) {
-        router.push('/');
-        router.refresh();
-      }
-    },
-  });
+  const { executeAsync, status } = useAction(loginUser);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -42,11 +37,17 @@ export function LoginForm() {
     },
   });
 
-  function onSubmit(data: LoginFormValues) {
-    execute(data);
+  async function onSubmit(data: LoginFormValues) {
+    setError(null);
+    const result = await executeAsync(data);
+    if (result?.data?.success) {
+      router.push('/');
+      router.refresh();
+    } else if (result?.data?.error) {
+      setError(result.data.error);
+    }
   }
 
-  const error = result?.data?.error;
   const isExecuting = status === 'executing';
 
   return (

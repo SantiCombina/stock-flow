@@ -78,6 +78,7 @@ export interface Config {
     'product-variants': ProductVariant;
     'product-custom-fields': ProductCustomField;
     clients: Client;
+    settings: Setting;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -96,6 +97,7 @@ export interface Config {
     'product-variants': ProductVariantsSelect<false> | ProductVariantsSelect<true>;
     'product-custom-fields': ProductCustomFieldsSelect<false> | ProductCustomFieldsSelect<true>;
     clients: ClientsSelect<false> | ClientsSelect<true>;
+    settings: SettingsSelect<false> | SettingsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -367,6 +369,79 @@ export interface Client {
   createdAt: string;
 }
 /**
+ * Configuración de preferencias del usuario
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings".
+ */
+export interface Setting {
+  id: number;
+  /**
+   * Usuario dueño de esta configuración
+   */
+  user: number | User;
+  /**
+   * Columnas visibles en la tabla de productos
+   */
+  productsColumns?:
+    | {
+        column: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Columnas visibles en la tabla de clientes
+   */
+  clientsColumns?:
+    | {
+        column: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Columnas visibles en la tabla de ventas
+   */
+  salesColumns?:
+    | {
+        column: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Columnas visibles en la tabla de asignaciones
+   */
+  assignmentsColumns?:
+    | {
+        column: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Columnas visibles en la tabla de historial
+   */
+  historyColumns?:
+    | {
+        column: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Columnas visibles en la tabla de vendedores
+   */
+  sellersColumns?:
+    | {
+        column: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Cantidad de elementos por página en las tablas
+   */
+  itemsPerPage?: ('10' | '25' | '50' | '100') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -433,6 +508,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'clients';
         value: number | Client;
+      } | null)
+    | ({
+        relationTo: 'settings';
+        value: number | Setting;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -632,6 +711,52 @@ export interface ClientsSelect<T extends boolean = true> {
   address?: T;
   createdBy?: T;
   owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "settings_select".
+ */
+export interface SettingsSelect<T extends boolean = true> {
+  user?: T;
+  productsColumns?:
+    | T
+    | {
+        column?: T;
+        id?: T;
+      };
+  clientsColumns?:
+    | T
+    | {
+        column?: T;
+        id?: T;
+      };
+  salesColumns?:
+    | T
+    | {
+        column?: T;
+        id?: T;
+      };
+  assignmentsColumns?:
+    | T
+    | {
+        column?: T;
+        id?: T;
+      };
+  historyColumns?:
+    | T
+    | {
+        column?: T;
+        id?: T;
+      };
+  sellersColumns?:
+    | T
+    | {
+        column?: T;
+        id?: T;
+      };
+  itemsPerPage?: T;
   updatedAt?: T;
   createdAt?: T;
 }

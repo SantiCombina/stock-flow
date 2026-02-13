@@ -18,6 +18,7 @@ import { ProductCustomFields } from './collections/ProductCustomFields';
 import { Products } from './collections/Products';
 import { ProductVariants } from './collections/ProductVariants';
 import { Qualities } from './collections/Qualities';
+import { Settings } from './collections/Settings';
 import { Users } from './collections/Users';
 
 const filename = fileURLToPath(import.meta.url);
@@ -42,6 +43,7 @@ export default buildConfig({
     ProductVariants,
     ProductCustomFields,
     Clients,
+    Settings,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

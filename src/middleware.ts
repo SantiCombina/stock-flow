@@ -19,7 +19,7 @@ export function middleware(request: NextRequest) {
 
   // Verificar autenticación
   const token = request.cookies.get('payload-token');
-  const isAuthenticated = !!token;
+  const isAuthenticated = !!token?.value;
 
   // Si es ruta pública, permitir acceso
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));

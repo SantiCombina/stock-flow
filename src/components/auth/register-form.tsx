@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useAction } from 'next-safe-action/hooks';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -35,13 +36,8 @@ interface RegisterFormProps {
 export function RegisterForm({ token, email, role }: RegisterFormProps) {
   const router = useRouter();
 
-  const { execute, status, result } = useAction(registerUser, {
-    onSuccess: ({ data }) => {
-      if (data?.success) {
-        router.push('/login?registered=true');
-      }
-    },
-  });
+  const { executeAsync, status } = useAction(registerUser);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -52,18 +48,23 @@ export function RegisterForm({ token, email, role }: RegisterFormProps) {
     },
   });
 
-  function onSubmit(data: RegisterFormValues) {
+  async function onSubmit(data: RegisterFormValues) {
     if (!token || !email) return;
 
-    execute({
+    setError(null);
+    const result = await executeAsync({
       name: data.name,
       email,
       password: data.password,
       token,
     });
-  }
 
-  const error = result?.data?.error;
+    if (result?.data?.success) {
+      router.push('/login?registered=true');
+    } else if (result?.data?.error) {
+      setError(result.data.error);
+    }
+  }
 
   if (!token || !email) {
     return (
