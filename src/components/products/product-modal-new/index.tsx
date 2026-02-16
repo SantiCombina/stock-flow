@@ -1,0 +1,139 @@
+'use client';
+
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
+import { EntityDialog } from './components/EntityDialog';
+import { ProductAttributesSection } from './components/ProductAttributesSection';
+import { ProductInfoSection } from './components/ProductInfoSection';
+import { ProductVariantsSection } from './components/ProductVariantsSection';
+import { useEntityDialog } from './hooks/useEntityDialog';
+import { useProductForm } from './hooks/useProductForm';
+import type { ProductModalProps } from './types';
+
+export function ProductModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  productId,
+  brands: initialBrands,
+  categories: initialCategories,
+  qualities: initialQualities,
+  presentations: initialPresentations,
+  onRefreshEntities,
+}: ProductModalProps) {
+  const [brands, setBrands] = useState(initialBrands);
+  const [categories, setCategories] = useState(initialCategories);
+  const [qualities, setQualities] = useState(initialQualities);
+  const [presentations, setPresentations] = useState(initialPresentations);
+
+  const {
+    isEditing,
+    isSubmitting,
+    isLoading,
+    register,
+    control,
+    handleSubmit,
+    errors,
+    setValue,
+    watch,
+    fields,
+    handleAddVariant,
+    handleRemoveVariant,
+    handleClose,
+  } = useProductForm({
+    productId,
+    isOpen,
+    onSuccess,
+    onClose,
+  });
+
+  const {
+    entityDialog,
+    entityName,
+    setEntityName,
+    openCreateEntity,
+    closeEntityDialog,
+    handleSaveEntity,
+    getEntityLabel,
+  } = useEntityDialog({
+    setBrands,
+    setCategories,
+    setQualities,
+    setPresentations,
+    setValue,
+    onRefreshEntities,
+  });
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? 'Editar Producto' : 'Nuevo Producto'}</DialogTitle>
+            <DialogDescription>
+              {isEditing ? 'Modifica los datos del producto.' : 'Completa los datos del producto y sus presentaciones.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <ProductInfoSection register={register} control={control} errors={errors} />
+
+              <ProductAttributesSection
+                control={control}
+                brands={brands}
+                categories={categories}
+                qualities={qualities}
+                onCreateEntity={openCreateEntity}
+              />
+
+              <ProductVariantsSection
+                fields={fields}
+                errors={errors}
+                register={register}
+                control={control}
+                watch={watch}
+                onAddVariant={handleAddVariant}
+                onRemoveVariant={handleRemoveVariant}
+                presentations={presentations}
+                onCreatePresentation={() => openCreateEntity('presentation')}
+              />
+
+              <DialogFooter className="gap-2">
+                <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear producto'}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <EntityDialog
+        entityDialog={entityDialog}
+        entityName={entityName}
+        onEntityNameChange={setEntityName}
+        onClose={closeEntityDialog}
+        onSave={handleSaveEntity}
+        getEntityLabel={getEntityLabel}
+      />
+    </>
+  );
+}

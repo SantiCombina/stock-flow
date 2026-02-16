@@ -1,10 +1,25 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
-import { toast } from 'sonner';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from "react";
+import { toast } from "sonner";
 
-import { getSettingsAction, updateTableColumnsAction, updateItemsPerPageAction } from '@/components/settings/actions';
-import type { TableName, ItemsPerPageOption } from '@/lib/constants/table-columns';
+import {
+  getSettingsAction,
+  updateTableColumnsAction,
+  updateItemsPerPageAction,
+} from "@/components/settings/actions";
+import type {
+  TableName,
+  ItemsPerPageOption,
+} from "@/lib/constants/table-columns";
 
 interface SettingsState {
   id: number | null;
@@ -23,20 +38,25 @@ interface SettingsContextType extends SettingsState {
   getVisibleColumns: (tableName: TableName) => string[];
   isColumnVisible: (tableName: TableName, columnKey: string) => boolean;
   getItemsPerPage: () => ItemsPerPageOption;
-  updateTableColumns: (tableName: TableName, columns: string[]) => Promise<void>;
+  updateTableColumns: (
+    tableName: TableName,
+    columns: string[],
+  ) => Promise<void>;
   updateItemsPerPage: (itemsPerPage: ItemsPerPageOption) => Promise<void>;
   reloadSettings: () => Promise<void>;
 }
 
-const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+const SettingsContext = createContext<SettingsContextType | undefined>(
+  undefined,
+);
 
 const DEFAULT_COLUMNS = {
-  products: ['name', 'code', 'stock', 'price'],
-  clients: ['name', 'phone', 'email'],
-  sales: ['date', 'client', 'total', 'status'],
-  assignments: ['date', 'seller', 'status'],
-  history: ['date', 'product', 'type', 'quantity'],
-  sellers: ['name', 'email', 'isActive'],
+  products: ["name", "code", "stock", "price"],
+  clients: ["name", "phone", "email"],
+  sales: ["date", "client", "total", "status"],
+  assignments: ["date", "seller", "status"],
+  history: ["date", "product", "type", "quantity"],
+  sellers: ["name", "email", "isActive"],
 };
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
@@ -48,23 +68,28 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     assignmentsColumns: DEFAULT_COLUMNS.assignments,
     historyColumns: DEFAULT_COLUMNS.history,
     sellersColumns: DEFAULT_COLUMNS.sellers,
-    itemsPerPage: '10',
+    itemsPerPage: "10",
     isLoading: true,
     error: null,
   });
 
-  // Ref para trackear si ya se cargaron los settings
   const hasFetchedRef = useRef(false);
 
-  // Effect para cargar settings iniciales
   useEffect(() => {
-    // Evitar fetchs duplicados en Strict Mode
     if (hasFetchedRef.current) return;
     hasFetchedRef.current = true;
 
-    // Ejecutar fetch - el estado inicial ya tiene isLoading: true
     getSettingsAction()
       .then((result) => {
+        if (result?.serverError) {
+          setState((prev) => ({
+            ...prev,
+            isLoading: false,
+            error: result.serverError,
+          }));
+          return;
+        }
+
         if (result?.data?.success && result.data.settings) {
           const settings = result.data.settings;
           setState((prev) => ({
@@ -118,52 +143,77 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return [10, 25, 50, 100].includes(value) ? value : 10;
   }, [state.itemsPerPage]);
 
-  const updateTableColumns = useCallback(async (tableName: TableName, columns: string[]) => {
-    try {
-      const result = await updateTableColumnsAction({
-        tableName,
-        columns,
-      });
+  const updateTableColumns = useCallback(
+    async (tableName: TableName, columns: string[]) => {
+      try {
+        const result = await updateTableColumnsAction({
+          tableName,
+          columns,
+        });
 
-      if (result?.data?.success) {
-        setState((prev) => ({
-          ...prev,
-          [`${tableName}Columns`]: columns,
-        }));
-        toast.success('Columnas actualizadas');
-      } else {
+        if (result?.serverError) {
+          toast.error(result.serverError);
+          return;
+        }
+
+        if (result?.data?.success) {
+          setState((prev) => ({
+            ...prev,
+            [`${tableName}Columns`]: columns,
+          }));
+          toast.success('Columnas actualizadas');
+        } else {
+          toast.error('Error al actualizar columnas');
+        }
+      } catch {
         toast.error('Error al actualizar columnas');
       }
-    } catch {
-      toast.error('Error al actualizar columnas');
-    }
-  }, []);
+    },
+    [],
+  );
 
-  const updateItemsPerPageCallback = useCallback(async (itemsPerPage: ItemsPerPageOption) => {
-    try {
-      const result = await updateItemsPerPageAction({
-        itemsPerPage: itemsPerPage.toString(),
-      });
-
-      if (result?.data?.success) {
-        setState((prev) => ({
-          ...prev,
+  const updateItemsPerPageCallback = useCallback(
+    async (itemsPerPage: ItemsPerPageOption) => {
+      try {
+        const result = await updateItemsPerPageAction({
           itemsPerPage: itemsPerPage.toString(),
-        }));
-        toast.success('Preferencia actualizada');
-      } else {
+        });
+
+        if (result?.serverError) {
+          toast.error(result.serverError);
+          return;
+        }
+
+        if (result?.data?.success) {
+          setState((prev) => ({
+            ...prev,
+            itemsPerPage: itemsPerPage.toString(),
+          }));
+          toast.success('Preferencia actualizada');
+        } else {
+          toast.error('Error al actualizar preferencia');
+        }
+      } catch {
         toast.error('Error al actualizar preferencia');
       }
-    } catch {
-      toast.error('Error al actualizar preferencia');
-    }
-  }, []);
+    },
+    [],
+  );
 
   const reloadSettings = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       const result = await getSettingsAction();
+
+      if (result?.serverError) {
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: result.serverError,
+        }));
+        return;
+      }
 
       if (result?.data?.success && result.data.settings) {
         const settings = result.data.settings;
@@ -205,13 +255,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     reloadSettings,
   };
 
-  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
+  return (
+    <SettingsContext.Provider value={value}>
+      {children}
+    </SettingsContext.Provider>
+  );
 }
 
 export function useSettings(): SettingsContextType {
   const context = useContext(SettingsContext);
   if (context === undefined) {
-    throw new Error('useSettings must be used within a SettingsProvider');
+    throw new Error("useSettings must be used within a SettingsProvider");
   }
   return context;
 }

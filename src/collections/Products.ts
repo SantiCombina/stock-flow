@@ -4,14 +4,20 @@ export const Products: CollectionConfig = {
   slug: 'products',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'code', 'brand', 'category', 'quality', 'owner'],
+    defaultColumns: ['name', 'brand', 'category', 'isActive'],
   },
   access: {
     create: ({ req: { user } }) => user?.role === 'admin' || user?.role === 'owner',
     read: ({ req: { user } }) => {
       if (!user) return false;
       if (user.role === 'admin') return true;
-      return { owner: { equals: user.id } };
+      if (user.role === 'owner') {
+        return { owner: { equals: user.id } };
+      }
+      if (user.role === 'seller' && user.owner) {
+        return { owner: { equals: user.owner } };
+      }
+      return false;
     },
     update: ({ req: { user } }) => user?.role === 'admin' || user?.role === 'owner',
     delete: ({ req: { user } }) => user?.role === 'admin' || user?.role === 'owner',
@@ -21,33 +27,41 @@ export const Products: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
+      label: 'Nombre',
     },
     {
-      name: 'code',
-      type: 'text',
-      required: true,
-      unique: true,
-      admin: {
-        description: 'Código único del producto',
-      },
+      name: 'description',
+      type: 'textarea',
+      required: false,
+      label: 'Descripción',
     },
     {
       name: 'brand',
       type: 'relationship',
       relationTo: 'brands',
-      required: true,
+      required: false,
+      label: 'Marca',
     },
     {
       name: 'category',
       type: 'relationship',
       relationTo: 'categories',
-      required: true,
+      required: false,
+      label: 'Categoría',
     },
     {
       name: 'quality',
       type: 'relationship',
       relationTo: 'qualities',
-      required: true,
+      required: false,
+      label: 'Calidad',
+    },
+    {
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
+      required: false,
+      label: 'Imagen',
     },
     {
       name: 'owner',
@@ -58,5 +72,27 @@ export const Products: CollectionConfig = {
         condition: () => false,
       },
     },
+    {
+      name: 'isActive',
+      type: 'checkbox',
+      defaultValue: true,
+      label: 'Activo',
+      admin: {
+        description: 'Desmarcar para ocultar el producto',
+      },
+    },
   ],
+  hooks: {
+    beforeChange: [
+      ({ req: { user }, data }) => {
+        if (user && !data.owner) {
+          return {
+            ...data,
+            owner: user.id,
+          };
+        }
+        return data;
+      },
+    ],
+  },
 };

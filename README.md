@@ -1,38 +1,73 @@
-# Payload Blank Template
+# Stocker
 
-This template comes configured with the bare minimum to get started on anything you need.
+Sistema de gestión de inventario y ventas para distribuidoras, diseñado para reemplazar hojas de Excel por una plataforma moderna donde los owners puedan gestionar su inventario, vendedores y ventas en tiempo real.
 
-## Quick start
+## Tech Stack
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+- Next.js 15 (App Router)
+- Payload CMS 3.75.x
+- PostgreSQL (Neon.tech)
+- Tailwind CSS 4.x
+- shadcn/ui
+- TypeScript
 
-## Quick Start - local setup
+## Setup
 
-To spin up this template locally, follow these steps:
+1. **Clone el repositorio**
 
-### Clone
+```bash
+git clone <repository-url>
+cd stock-flow
+```
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+2. **Instala las dependencias**
 
-### Development
+```bash
+pnpm install
+```
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URL` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+3. **Configura las variables de entorno**
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+Copia el archivo `.env.example` a `.env`:
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+```bash
+cp .env.example .env
+```
 
-#### Docker (Optional)
+**IMPORTANTE**: Para evitar warnings de seguridad SSL, asegúrate de que tu `DATABASE_URL` incluya `sslmode=verify-full` en producción:
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+```env
+DATABASE_URL=postgresql://user:password@host:5432/database?sslmode=verify-full
+```
 
-To do so, follow these steps:
+4. **Ejecuta el servidor de desarrollo**
 
-- Modify the `MONGODB_URL` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URL` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+```bash
+pnpm dev
+```
+
+5. Abre `http://localhost:3000` en tu navegador
+
+## Comandos Disponibles
+
+```bash
+# Desarrollo
+pnpm dev              # Inicia servidor de desarrollo
+pnpm devsafe          # Limpia .next y reinicia
+
+# Build
+pnpm build            # Build de producción
+pnpm start            # Inicia servidor de producción
+
+# Linting
+pnpm lint             # Ejecuta ESLint
+pnpm lint:fix         # Corrige errores automáticamente
+
+# Payload
+pnpm generate:types   # Genera tipos de Payload (IMPORTANTE después de cambios en colecciones)
+pnpm generate:importmap  # Regenera import map
+pnpm payload          # CLI de Payload
+```
 
 ## How it works
 

@@ -9,21 +9,21 @@ export const Settings: CollectionConfig = {
     description: 'Configuración de preferencias del usuario',
   },
   access: {
-    // Solo usuarios autenticados pueden crear sus settings
+
     create: ({ req: { user } }) => !!user,
-    // Usuarios solo pueden ver sus propias settings
+
     read: ({ req: { user } }) => {
       if (!user) return false;
       if (user.role === 'admin') return true;
       return { user: { equals: user.id } };
     },
-    // Usuarios solo pueden actualizar sus propias settings
+
     update: ({ req: { user } }) => {
       if (!user) return false;
       if (user.role === 'admin') return true;
       return { user: { equals: user.id } };
     },
-    // Solo admins pueden eliminar settings
+
     delete: ({ req: { user } }) => user?.role === 'admin',
   },
   fields: [
@@ -37,7 +37,7 @@ export const Settings: CollectionConfig = {
         description: 'Usuario dueño de esta configuración',
       },
     },
-    // Columnas por tabla
+
     {
       name: 'productsColumns',
       type: 'array',
@@ -128,7 +128,7 @@ export const Settings: CollectionConfig = {
         },
       ],
     },
-    // Elementos por página
+
     {
       name: 'itemsPerPage',
       type: 'select',
@@ -142,7 +142,7 @@ export const Settings: CollectionConfig = {
       },
     },
   ],
-  // Hook para asegurar que el user siempre sea el usuario autenticado
+
   hooks: {
     beforeChange: [
       ({ req: { user }, data }) => {

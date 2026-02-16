@@ -137,38 +137,54 @@ SaaS multi-tenant donde cada owner gestiona su propio negocio.
 
 > **Objetivo**: CRUD completo de productos con control de stock.
 
-#### Colección `Products` (Propuesta Inicial - Sujeta a Discusión)
+#### Estructura Confirmada ✅
 
+**`Products`** (datos comunes):
 ```typescript
 {
-  name: string;           // Nombre del producto
+  name: string;           // Nombre (requerido)
+  code: string;           // Código único POR OWNER
   description?: string;   // Descripción opcional
-  sku?: string;          // Código único
-  category?: string;     // Categoría
-  price: number;         // Precio de venta
-  cost?: number;         // Costo (opcional)
-  stock: number;         // Cantidad disponible
-  minStock?: number;     // Alerta de stock bajo
-  unit: string;          // Unidad (unidad, kg, litro, etc.)
-  isActive: boolean;     // Si está disponible para vender
-  owner: relationship;   // Dueño del producto
-  image?: upload;        // Imagen opcional
+  brand?: relationship;   // Marca (colección Brands)
+  category?: relationship;// Categoría (colección Categories)
+  quality?: relationship; // Calidad (colección Qualities)
+  unit?: string;          // Unidad libre (kg, litro, etc.)
+  image?: upload;         // Imagen (Media)
+  owner: relationship;    // Dueño (auto-asignado)
+  isActive: boolean;      // Activo (default: true)
 }
 ```
 
-> ⚠️ **NOTA PARA LA IA**: Esta estructura es solo una propuesta. DEBES consultar al usuario antes de implementar para confirmar campos, tipos, validaciones y relaciones.
+**`ProductVariants`** (presentaciones: 1kg, 3kg, 5kg...):
+```typescript
+{
+  code?: string;          // Código opcional de la variante
+  product: relationship;  // Producto padre
+  presentation: relationship; // Presentación (colección Presentations)
+  stock: number;          // Stock actual (default: 0)
+  minStock: number;       // Alerta stock bajo (default: 0)
+  price: number;          // Precio de venta
+  owner: relationship;    // Heredado del producto (duplicado para access control)
+}
+```
+
+**Notas clave:**
+- El `code` es único por owner (validación en hook)
+- Stock/precio son por **variante** (cada presentación)
+- `owner` está en ambas colecciones para facilitar access control
+- `unit` es string libre (kg, litro, caja, etc.)
 
 #### Tareas
 
-- [ ] **1.1** Crear colección `Products` con access control
-- [ ] **1.2** Servicio de productos (CRUD)
-- [ ] **1.3** Tabla de productos con DataTable
+- [x] **1.1** Crear colección `Products` con access control
+- [x] **1.2** Servicio de productos (CRUD)
+- [x] **1.3** Tabla de productos con DataTable
   - Columnas configurables según Settings
   - Búsqueda y filtros
   - Paginación
-- [ ] **1.4** Modal/Página de crear producto
-- [ ] **1.5** Modal/Página de editar producto
-- [ ] **1.6** Eliminar producto (soft delete o confirmar)
+- [x] **1.4** Modal de crear producto
+- [x] **1.5** Modal de editar producto  
+- [x] **1.6** Eliminar producto con confirmación
 - [ ] **1.7** Importar productos desde CSV (opcional - futuro)
 
 **Entregable**: Owner puede gestionar su catálogo de productos.

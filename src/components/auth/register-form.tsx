@@ -59,6 +59,11 @@ export function RegisterForm({ token, email, role }: RegisterFormProps) {
       token,
     });
 
+    if (result?.serverError) {
+      setError(result.serverError);
+      return;
+    }
+
     if (result?.data?.success) {
       router.push('/login?registered=true');
     } else if (result?.data?.error) {

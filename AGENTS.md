@@ -168,6 +168,14 @@ Las rutas protegidas por feature flags se definen en `src/middleware.ts`.
 - Usar `src/payload-types.ts` para tipos generados
 - No usar `console.log` en producción (permitido en desarrollo)
 
+### Code Quality
+
+**⚠️ PROHIBIDO dejar comentarios en el código**
+- El código debe ser auto-explicativo
+- Usar nombres descriptivos de variables y funciones
+- Si necesitas explicar algo, probablemente el código necesita refactorizarse
+- Excepciones: JSDoc para funciones públicas de servicios (solo cuando sea necesario)
+
 ### Components
 
 - **Server Components por defecto** - Solo usar `'use client'` cuando sea necesario
@@ -175,44 +183,291 @@ Las rutas protegidas por feature flags se definen en `src/middleware.ts`.
 - Props con interfaces nombradas `[Component]Props`
 - Usar shadcn/ui para componentes base
 
-### Server Actions
+### Server Actions Architecture
 
-SIEMPRE usar `next-safe-action`:
+**ARQUITECTURA OBLIGATORIA DE TRES CAPAS:**
+
+```
+Client Component -> Server Action -> Service Layer
+     (useAction)    (auth/validation)  (business logic)
+```
+
+#### 1. Service Layer (`src/app/services/[entity].ts`)
+
+**TODA la lógica de negocio va aquí:**
 
 ```typescript
 'use server';
 
-import { actionClient } from '@/lib/safe-action';
+import { getPayloadClient } from '@/lib/payload';
+import type { Brand } from '@/payload-types';
+
+export async function getBrands(ownerId: number): Promise<Brand[]> {
+  const payload = await getPayloadClient();
+
+  const result = await payload.find({
+    collection: 'brands',
+    where: { owner: { equals: ownerId } },
+    sort: 'name',
+    limit: 1000,
+    overrideAccess: true,
+  });
+
+  return result.docs as Brand[];
+}
+
+export async function createBrand(name: string, ownerId: number): Promise<Brand> {
+  const payload = await getPayloadClient();
+
+  const brand = await payload.create({
+    collection: 'brands',
+    data: { name, owner: ownerId },
+    overrideAccess: true,
+  });
+
+  return brand as Brand;
+}
+```
+
+**Reglas del Service Layer:**
+- Sin autenticación (recibe ownerId como parámetro)
+- Sin validación (recibe datos ya validados)
+- Solo lógica de base de datos y negocio
+- Funciones puras y testeables
+- NUNCA llamar a otros actions, solo a otros servicios
+
+#### 2. Action Layer (`src/components/[feature]/actions.ts`)
+
+**Solo autenticación, autorización y validación:**
+
+```typescript
+'use server';
+
 import { z } from 'zod';
+import { createBrand } from '@/app/services/entities';
+import { getCurrentUser } from '@/lib/payload';
+import { actionClient } from '@/lib/safe-action';
 
-const schema = z.object({
-  name: z.string().min(1),
-});
+export const createBrandAction = actionClient
+  .schema(z.object({ name: z.string().min(1, 'El nombre es requerido') }))
+  .action(async ({ parsedInput }) => {
+    const user = await getCurrentUser();
+    if (!user || user.role !== 'owner') {
+      throw new Error('No autorizado');
+    }
 
-export const createAction = actionClient
+    const brand = await createBrand(parsedInput.name, user.id);
+    return { success: true, brand };
+  });
+```
+
+**Reglas del Action Layer:**
+- SIEMPRE usar `actionClient` de next-safe-action
+- Validar con `.schema()` de Zod
+- Autenticar con `getCurrentUser()`
+- Autorizar según roles
+- Llamar a servicios para lógica de negocio
+- Retornar `{ success: true, ...data }` o lanzar errores
+- NUNCA lógica de negocio directa
+
+#### 3. Client Components (uso con `useAction`)
+
+**❌ INCORRECTO - Llamada directa:**
+
+```typescript
+const result = await createBrandAction({ name });
+if (result?.serverError) {
+  toast.error(result.serverError);
+}
+```
+
+**✅ CORRECTO - Usar hook `useAction`:**
+
+```typescript
+import { useAction } from 'next-safe-action/hooks';
+import { createBrandAction } from './actions';
+
+export function BrandForm() {
+  const { executeAsync, isExecuting } = useAction(createBrandAction);
+
+  const handleSubmit = async (data: FormData) => {
+    const result = await executeAsync({ name: data.get('name') as string });
+    
+    if (result?.serverError) {
+      toast.error(result.serverError);
+      return;
+    }
+
+    if (result?.data?.success) {
+      toast.success('Marca creada');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button disabled={isExecuting}>Crear</button>
+    </form>
+  );
+}
+```
+
+**Reglas de Client Components:**
+- SIEMPRE usar `useAction` hook, NUNCA llamar actions directamente
+- Desestructurar `executeAsync` e `isExecuting` del hook
+- Validar `serverError` antes de `data`
+- Usar `isExecuting` para estados de carga
+- Manejar errores con toast/UI apropiada
+
+#### ⚠️ Errores Comunes a Evitar
+
+```typescript
+// ❌ NO: Lógica de negocio en actions
+export const createBrandAction = actionClient
   .schema(schema)
   .action(async ({ parsedInput }) => {
-    // Lógica aquí
-    return result;
+    const payload = await getPayloadClient();
+    const brand = await payload.create({ ... });
+    return brand;
   });
+
+// ❌ NO: Llamada directa sin useAction
+const result = await createBrandAction({ name });
+
+// ❌ NO: Servicios con autenticación
+export async function createBrand() {
+  const user = await getCurrentUser();
+  ...
+}
+
+// ✅ SÍ: Separación clara de responsabilidades
+Service: Lógica de DB
+Action: Auth + Validation + Llamada a Service
+Component: useAction + UI
 ```
 
 ### Data Fetching
 
-- **Server Components**: Fetch directo usando servicios
-- **Mutaciones**: Server Actions con revalidación
-- **No usar** useEffect para data fetching
+#### Server Components (RSC)
+
+```typescript
+import { getProducts } from '@/app/services/products';
+import { getCurrentUser } from '@/lib/payload';
+
+export default async function ProductsPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+  
+  const products = await getProducts(user.id);
+  
+  return <ProductList products={products} />;
+}
+```
+
+**Reglas:**
+- Fetch directo usando servicios
+- Autenticar en el componente si es necesario
+- No usar `useEffect` para data fetching inicial
+- Pasar datos como props a Client Components
+
+#### Client Components (Mutaciones)
+
+```typescript
+'use client';
+
+import { useAction } from 'next-safe-action/hooks';
+import { createProductAction } from './actions';
+
+export function ProductForm() {
+  const { executeAsync, isExecuting } = useAction(createProductAction);
+  
+  const onSubmit = async (data) => {
+    const result = await executeAsync(data);
+    if (result?.data?.success) {
+      router.refresh();
+    }
+  };
+}
+```
+
+**Reglas:**
+- Mutaciones con Server Actions usando `useAction`
+- Revalidación con `router.refresh()` o `revalidatePath`
+- Estados de carga con `isExecuting`
+- NUNCA useEffect para mutations
 
 ### Services Pattern
 
+**Estructura estándar de servicios:**
+
 ```typescript
-// src/app/services/[entity].ts
-export async function getAll(ownerId: number) {}
-export async function getById(id: number) {}
-export async function create(data: CreateData) {}
-export async function update(id: number, data: UpdateData) {}
-export async function remove(id: number) {}
+'use server';
+
+import { getPayloadClient } from '@/lib/payload';
+import type { Entity } from '@/payload-types';
+
+export async function getAll(ownerId: number): Promise<Entity[]> {
+  const payload = await getPayloadClient();
+  const result = await payload.find({
+    collection: 'entities',
+    where: { owner: { equals: ownerId } },
+    sort: 'name',
+    overrideAccess: true,
+  });
+  return result.docs as Entity[];
+}
+
+export async function getById(id: number): Promise<Entity | null> {
+  const payload = await getPayloadClient();
+  try {
+    const entity = await payload.findByID({
+      collection: 'entities',
+      id,
+      overrideAccess: true,
+    });
+    return entity as Entity;
+  } catch {
+    return null;
+  }
+}
+
+export async function create(data: CreateData, ownerId: number): Promise<Entity> {
+  const payload = await getPayloadClient();
+  const entity = await payload.create({
+    collection: 'entities',
+    data: { ...data, owner: ownerId },
+    overrideAccess: true,
+  });
+  return entity as Entity;
+}
+
+export async function update(id: number, data: UpdateData): Promise<Entity> {
+  const payload = await getPayloadClient();
+  const entity = await payload.update({
+    collection: 'entities',
+    id,
+    data,
+    overrideAccess: true,
+  });
+  return entity as Entity;
+}
+
+export async function remove(id: number): Promise<void> {
+  const payload = await getPayloadClient();
+  await payload.delete({
+    collection: 'entities',
+    id,
+    overrideAccess: true,
+  });
+}
 ```
+
+**Características clave:**
+- Siempre `'use server'` al inicio
+- Tipos explícitos en parámetros y retornos
+- `overrideAccess: true` (la seguridad se maneja en actions)
+- Manejo de errores con try/catch donde corresponda
+- Sin lógica de autenticación (recibe ownerId)
+- Operaciones atómicas y claras
 
 ### Styling
 
@@ -282,6 +537,8 @@ hooks: {
 
 ## ⚠️ METODOLOGÍA OBLIGATORIA
 
+### Consultar Antes de Implementar
+
 **NUNCA implementar código sin consultar primero cuando:**
 
 - Vayas a crear o modificar una colección de Payload
@@ -297,6 +554,18 @@ hooks: {
 4. **Solo entonces** proceder a implementar
 
 Las estructuras en `docs/PLAN.md` son **propuestas iniciales**, NO instrucciones finales.
+
+### Arquitectura de Código
+
+**SIEMPRE seguir esta arquitectura:**
+
+1. **Services** (`src/app/services/`): Lógica de negocio pura
+2. **Actions** (`src/components/[feature]/actions.ts`): Auth + Validation + Llamadas a services
+3. **Components**: Usar `useAction` hook, nunca llamadas directas
+4. **NO comentarios**: Código auto-explicativo, nombres descriptivos
+5. **TypeScript estricto**: Tipos explícitos, sin `any`
+
+**Si ves código que no sigue esta arquitectura, refáctoralo.**
 
 ---
 

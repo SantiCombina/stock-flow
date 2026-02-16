@@ -259,7 +259,7 @@ export interface Presentation {
    * Unidad: kg, g, L, ml, etc.
    */
   unit: string;
-  product: number | Product;
+  product?: (number | null) | Product;
   owner?: (number | null) | User;
   updatedAt: string;
   createdAt: string;
@@ -271,14 +271,16 @@ export interface Presentation {
 export interface Product {
   id: number;
   name: string;
-  /**
-   * Código único del producto
-   */
-  code: string;
-  brand: number | Brand;
-  category: number | Category;
-  quality: number | Quality;
+  description?: string | null;
+  brand?: (number | null) | Brand;
+  category?: (number | null) | Category;
+  quality?: (number | null) | Quality;
+  image?: (number | null) | Media;
   owner?: (number | null) | User;
+  /**
+   * Desmarcar para ocultar el producto
+   */
+  isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -289,14 +291,21 @@ export interface Product {
 export interface ProductVariant {
   id: number;
   /**
-   * Código interno o SKU de la variante
+   * Código único del producto con esta presentación (opcional)
    */
-  sku?: string | null;
+  code?: string | null;
   product: number | Product;
-  presentation: number | Presentation;
+  presentation?: (number | null) | Presentation;
+  /**
+   * Cantidad disponible en inventario
+   */
   stock: number;
   /**
-   * Precio de venta de la variante
+   * Alerta cuando el stock esté por debajo de este valor
+   */
+  minStock: number;
+  /**
+   * Precio de venta de esta presentación
    */
   price: number;
   owner?: (number | null) | User;
@@ -664,11 +673,13 @@ export interface PresentationsSelect<T extends boolean = true> {
  */
 export interface ProductsSelect<T extends boolean = true> {
   name?: T;
-  code?: T;
+  description?: T;
   brand?: T;
   category?: T;
   quality?: T;
+  image?: T;
   owner?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -677,10 +688,11 @@ export interface ProductsSelect<T extends boolean = true> {
  * via the `definition` "product-variants_select".
  */
 export interface ProductVariantsSelect<T extends boolean = true> {
-  sku?: T;
+  code?: T;
   product?: T;
   presentation?: T;
   stock?: T;
+  minStock?: T;
   price?: T;
   owner?: T;
   updatedAt?: T;

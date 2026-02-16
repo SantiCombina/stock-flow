@@ -11,17 +11,17 @@ export const Invitations: CollectionConfig = {
   access: {
     create: ({ req: { user } }) => {
       if (!user) return false;
-      // Admins pueden invitar owners
-      // Owners pueden invitar sellers
+
+
       return user.role === 'admin' || user.role === 'owner';
     },
     read: ({ req: { user } }) => {
       if (!user) return false;
       if (user.role === 'admin') return true;
-      // Owners ven sus propias invitaciones
+
       return { createdBy: { equals: user.id } };
     },
-    update: () => false, // No se pueden editar
+    update: () => false,
     delete: ({ req: { user } }) => {
       if (!user) return false;
       if (user.role === 'admin') return true;
@@ -32,9 +32,9 @@ export const Invitations: CollectionConfig = {
     beforeValidate: [
       ({ data, operation }) => {
         if (operation === 'create' && data) {
-          // Generar token único
+
           data.token = randomBytes(32).toString('hex');
-          // Expira en 7 días
+
           data.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
         }
         return data;
@@ -43,11 +43,11 @@ export const Invitations: CollectionConfig = {
     beforeChange: [
       async ({ data, req, operation }) => {
         if (operation === 'create' && req.user && data) {
-          // Owners solo pueden invitar sellers
+
           if (req.user.role === 'owner' && data.role !== 'seller') {
             throw new Error('Solo podés invitar vendedores');
           }
-          // Admins solo pueden invitar owners (o admins)
+
           if (req.user.role === 'admin' && data.role === 'seller') {
             throw new Error('Admins solo invitan owners');
           }

@@ -7,8 +7,6 @@ import { getCurrentUser } from '@/lib/payload';
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
 
-  // Si no hay usuario, el middleware se encarga de redirigir
-  // No hacemos redirect aquí para evitar loops
   if (!user) {
     return null;
   }

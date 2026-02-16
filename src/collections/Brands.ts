@@ -28,7 +28,7 @@ export const Brands: CollectionConfig = {
       relationTo: 'users',
       required: true,
       admin: {
-        condition: () => false, // oculto en panel para sellers
+        condition: () => false,
       },
     },
   ],

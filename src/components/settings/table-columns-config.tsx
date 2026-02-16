@@ -1,11 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { TABLE_COLUMNS, COLUMN_LABELS, MINIMUM_COLUMNS, type TableName } from '@/lib/constants/table-columns';
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  TABLE_COLUMNS,
+  COLUMN_LABELS,
+  MINIMUM_COLUMNS,
+  type TableName,
+} from "@/lib/constants/table-columns";
 
 interface TableColumnsConfigProps {
   tableName: TableName;
@@ -13,11 +18,14 @@ interface TableColumnsConfigProps {
   onSave: (columns: string[]) => Promise<void>;
 }
 
-export function TableColumnsConfig({ tableName, initialColumns, onSave }: TableColumnsConfigProps) {
+export function TableColumnsConfig({
+  tableName,
+  initialColumns,
+  onSave,
+}: TableColumnsConfigProps) {
   const [columns, setColumns] = useState<string[]>(initialColumns);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sincronizar con props cuando cambien
   useEffect(() => {
     setColumns(initialColumns);
   }, [initialColumns]);
@@ -27,7 +35,6 @@ export function TableColumnsConfig({ tableName, initialColumns, onSave }: TableC
   const handleToggle = (column: string) => {
     setColumns((prev) => {
       if (prev.includes(column)) {
-        // No permitir deseleccionar la última columna
         if (prev.length === 1) return prev;
         return prev.filter((c) => c !== column);
       }
@@ -40,7 +47,6 @@ export function TableColumnsConfig({ tableName, initialColumns, onSave }: TableC
   };
 
   const handleSelectMinimum = () => {
-    // Seleccionar las columnas mínimas definidas para esta tabla
     setColumns([...MINIMUM_COLUMNS[tableName]]);
   };
 
@@ -53,12 +59,14 @@ export function TableColumnsConfig({ tableName, initialColumns, onSave }: TableC
     }
   };
 
-  const hasChanges = JSON.stringify(columns.sort()) !== JSON.stringify(initialColumns.sort());
+  const hasChanges =
+    JSON.stringify(columns.sort()) !== JSON.stringify(initialColumns.sort());
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Selecciona las columnas que deseas ver en la tabla de {tableName}. Debe haber al menos una columna seleccionada.
+        Selecciona las columnas que deseas ver en la tabla de {tableName}. Debe
+        haber al menos una columna seleccionada.
       </p>
 
       <div className="flex gap-2">
@@ -70,7 +78,12 @@ export function TableColumnsConfig({ tableName, initialColumns, onSave }: TableC
         >
           Seleccionar todas
         </Button>
-        <Button variant="outline" size="sm" onClick={handleSelectMinimum} disabled={columns.length === 3}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSelectMinimum}
+          disabled={columns.length === 3}
+        >
           Mínimo
         </Button>
       </div>
@@ -84,7 +97,10 @@ export function TableColumnsConfig({ tableName, initialColumns, onSave }: TableC
               onCheckedChange={() => handleToggle(column)}
               disabled={columns.length === 1 && columns.includes(column)}
             />
-            <Label htmlFor={`${tableName}-${column}`} className="text-sm font-normal cursor-pointer">
+            <Label
+              htmlFor={`${tableName}-${column}`}
+              className="text-sm font-normal cursor-pointer"
+            >
               {COLUMN_LABELS[column] || column}
             </Label>
           </div>
@@ -94,7 +110,7 @@ export function TableColumnsConfig({ tableName, initialColumns, onSave }: TableC
       {hasChanges && (
         <div className="flex justify-end pt-2">
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Guardando...' : 'Guardar cambios'}
+            {isSaving ? "Guardando..." : "Guardar cambios"}
           </Button>
         </div>
       )}

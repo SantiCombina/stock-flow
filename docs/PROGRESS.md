@@ -219,4 +219,80 @@ const pageSize = getItemsPerPage(); // 10, 25, 50 o 100
 
 ---
 
+## 📐 Arquitectura y Mejores Prácticas
+
+### ✅ Actualización: Arquitectura de Server Actions (Febrero 2026)
+
+**Objetivo:** Establecer una arquitectura limpia, mantenible y optimizada usando next-safe-action.
+
+#### 🎯 Arquitectura de Tres Capas (OBLIGATORIA)
+
+```
+Client Component -> Server Action -> Service Layer
+     (useAction)    (auth/validation)  (business logic)
+```
+
+**1. Service Layer** (`src/app/services/`)
+- Lógica de negocio pura
+- Sin autenticación
+- Sin validación
+- Recibe datos validados
+- Funciones testeables
+
+**2. Action Layer** (`src/components/[feature]/actions.ts`)
+- Solo autenticación y autorización
+- Validación con Zod schemas
+- Llamadas a servicios
+- Retorna formato `{ success: true, ...data }`
+
+**3. Client Components**
+- SIEMPRE usar hook `useAction`
+- NUNCA llamar actions directamente
+- Manejar estados de carga con `isExecuting`
+- Validar `serverError` antes de `data`
+
+#### 📁 Archivos Creados/Modificados:
+
+| Archivo | Descripción |
+|---------|-------------|
+| `AGENTS.md` | Actualizado con arquitectura detallada de Server Actions |
+| `skills/nextjs-15/SKILL.md` | Actualizado con patrones de next-safe-action |
+| `src/app/services/entities.ts` | Creado con servicios para Brands, Categories, Qualities, Presentations |
+| `src/components/products/entity-actions.ts` | Refactorizado para usar servicios |
+| `src/components/products/actions.ts` | Optimizado con importaciones dinámicas |
+
+#### 🚫 Reglas de Código
+
+1. **No Comentarios**: Código auto-explicativo con nombres descriptivos
+2. **TypeScript Estricto**: Sin `any`, tipos explícitos
+3. **useAction Obligatorio**: Nunca llamadas directas a actions
+4. **Separación de Responsabilidades**: Service/Action/Component
+5. **Lógica de Negocio en Services**: Actions solo auth/validation
+
+#### ✅ Ejemplo Correcto:
+
+```typescript
+// Service
+export async function createBrand(name: string, ownerId: number): Promise<Brand> {
+  const payload = await getPayloadClient();
+  return await payload.create({ collection: 'brands', data: { name, owner: ownerId } });
+}
+
+// Action
+export const createBrandAction = actionClient
+  .schema(z.object({ name: z.string().min(1) }))
+  .action(async ({ parsedInput }) => {
+    const user = await getCurrentUser();
+    if (!user || user.role !== 'owner') throw new Error('No autorizado');
+    const brand = await createBrand(parsedInput.name, user.id);
+    return { success: true, brand };
+  });
+
+// Component
+const { executeAsync, isExecuting } = useAction(createBrandAction);
+const result = await executeAsync({ name });
+```
+
+---
+
 _Última actualización: Febrero 2026_

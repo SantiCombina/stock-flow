@@ -21,7 +21,6 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
 
   const payload = await getPayload({ config });
 
-  // Buscar invitación válida
   const { docs: invitations } = await payload.find({
     collection: 'invitations',
     where: {

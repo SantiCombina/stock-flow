@@ -1,12 +1,11 @@
 'use client';
 
 import { PageHeader } from '@/components/layout/page-header';
-import { ItemsPerPageConfig } from '@/components/settings/items-per-page-config';
 import { TableColumnsConfig } from '@/components/settings/table-columns-config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSettings } from '@/contexts/settings-context';
-import { TABLE_LABELS, type TableName, type ItemsPerPageOption } from '@/lib/constants/table-columns';
+import { TABLE_LABELS, type TableName } from '@/lib/constants/table-columns';
 
 const TABLE_NAMES: TableName[] = ['products', 'clients', 'sales', 'assignments', 'history', 'sellers'];
 
@@ -18,10 +17,8 @@ export function SettingsSection() {
     assignmentsColumns,
     historyColumns,
     sellersColumns,
-    itemsPerPage,
     isLoading,
     updateTableColumns,
-    updateItemsPerPage,
   } = useSettings();
 
   const getColumns = (tableName: TableName): string[] => {
@@ -59,21 +56,6 @@ export function SettingsSection() {
       <PageHeader title="Configuración" description="Personaliza tu experiencia" />
 
       <main className="flex-1 space-y-6 px-6 pb-6">
-        {/* Items per page config */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Paginación</CardTitle>
-            <CardDescription>Cantidad de elementos a mostrar en cada tabla</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ItemsPerPageConfig
-              initialValue={parseInt(itemsPerPage, 10) as ItemsPerPageOption}
-              onSave={updateItemsPerPage}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Table columns config */}
         <Card>
           <CardHeader>
             <CardTitle>Columnas visibles</CardTitle>

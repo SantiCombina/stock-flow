@@ -1,0 +1,81 @@
+'use client';
+
+import { Plus } from 'lucide-react';
+import type { Control, FieldErrors, UseFormRegister, UseFormWatch } from 'react-hook-form';
+
+import { Button } from '@/components/ui/button';
+import type { Presentation } from '@/payload-types';
+
+import { VariantCard } from './VariantCard';
+
+interface ProductFormData {
+  name: string;
+  description?: string;
+  brandId?: string;
+  categoryId?: string;
+  qualityId?: string;
+  isActive: boolean;
+  variants: Array<{
+    id?: number;
+    presentationId?: string;
+    code?: string;
+    stock: number;
+    minStock: number;
+    price: number;
+  }>;
+}
+
+interface ProductVariantsSectionProps {
+  fields: Array<Record<string, unknown> & { id: string }>;
+  errors: FieldErrors<ProductFormData>;
+  register: UseFormRegister<ProductFormData>;
+  control: Control<ProductFormData>;
+  watch: UseFormWatch<ProductFormData>;
+  onAddVariant: () => void;
+  onRemoveVariant: (index: number) => void;
+  presentations: Presentation[];
+  onCreatePresentation: () => void;
+}
+
+export function ProductVariantsSection({
+  fields,
+  errors,
+  register,
+  control,
+  watch,
+  onAddVariant,
+  onRemoveVariant,
+  presentations,
+  onCreatePresentation,
+}: ProductVariantsSectionProps) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between border-b pb-2">
+        <h3 className="font-semibold text-lg">Presentaciones y Precios *</h3>
+        <Button type="button" variant="outline" size="sm" onClick={onAddVariant}>
+          <Plus className="mr-2 h-4 w-4" />
+          Agregar presentación
+        </Button>
+      </div>
+
+      {errors.variants && <p className="text-sm text-destructive">{errors.variants.message}</p>}
+
+      <div className="space-y-3">
+        {fields.map((field, index) => (
+          <VariantCard
+            key={field.id}
+            index={index}
+            canDelete={fields.length > 1}
+            onDelete={onRemoveVariant}
+            presentations={presentations}
+            onCreatePresentation={onCreatePresentation}
+            presentationValue={watch(`variants.${index}.presentationId`)}
+            register={register}
+            control={control}
+            errors={errors}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}

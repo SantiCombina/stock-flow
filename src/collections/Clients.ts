@@ -14,12 +14,12 @@ export const Clients: CollectionConfig = {
     read: ({ req: { user } }) => {
       if (!user) return false;
       if (user.role === 'admin') return true;
-      // Owner ve todos los clientes de su negocio
+
       if (user.role === 'owner') {
         const query: Where = { owner: { equals: user.id } };
         return query;
       }
-      // Seller ve solo los clientes que él creó
+
       if (user.role === 'seller') {
         const query: Where = { createdBy: { equals: user.id } };
         return query;
@@ -29,12 +29,12 @@ export const Clients: CollectionConfig = {
     update: ({ req: { user } }) => {
       if (!user) return false;
       if (user.role === 'admin') return true;
-      // Owner puede editar clientes de su negocio
+
       if (user.role === 'owner') {
         const query: Where = { owner: { equals: user.id } };
         return query;
       }
-      // Seller puede editar clientes que él creó
+
       if (user.role === 'seller') {
         const query: Where = { createdBy: { equals: user.id } };
         return query;
@@ -44,12 +44,12 @@ export const Clients: CollectionConfig = {
     delete: ({ req: { user } }) => {
       if (!user) return false;
       if (user.role === 'admin') return true;
-      // Owner puede eliminar clientes de su negocio
+
       if (user.role === 'owner') {
         const query: Where = { owner: { equals: user.id } };
         return query;
       }
-      // Seller puede eliminar clientes que él creó
+
       if (user.role === 'seller') {
         const query: Where = { createdBy: { equals: user.id } };
         return query;

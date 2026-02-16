@@ -9,6 +9,7 @@
 3. **Performance**: Optimize images, implement streaming, use React Suspense
 4. **Data Fetching**: Prefer native fetch with caching strategies
 5. **DRY**: Never hardcode values, use constants and environment variables
+6. **No Comments**: Code must be self-explanatory with descriptive names
 
 ---
 
@@ -236,46 +237,146 @@ export async function POST(request: Request) {
 
 ## Server Actions Best Practices
 
-### Always use next-safe-action
+### Three-Layer Architecture (MANDATORY)
+
+```
+Client Component -> Server Action -> Service Layer
+     (useAction)    (auth/validation)  (business logic)
+```
+
+#### 1. Service Layer (`src/app/services/`)
+
+**Pure business logic - NO auth, NO validation:**
+
+```typescript
+'use server';
+
+import { getPayloadClient } from '@/lib/payload';
+import type { Product } from '@/payload-types';
+
+export async function getProducts(ownerId: number): Promise<Product[]> {
+  const payload = await getPayloadClient();
+  
+  const result = await payload.find({
+    collection: 'products',
+    where: { owner: { equals: ownerId } },
+    sort: 'name',
+    overrideAccess: true,
+  });
+  
+  return result.docs as Product[];
+}
+
+export async function createProduct(data: CreateData, ownerId: number): Promise<Product> {
+  const payload = await getPayloadClient();
+  
+  const product = await payload.create({
+    collection: 'products',
+    data: { ...data, owner: ownerId },
+    overrideAccess: true,
+  });
+  
+  return product as Product;
+}
+```
+
+#### 2. Action Layer (`src/components/[feature]/actions.ts`)
+
+**Auth + Validation + Service calls:**
+
+```typescript
+'use server';
+
+import { actionClient } from '@/lib/safe-action';
+import { z } from 'zod';
+import { createProduct } from '@/app/services/products';
+import { getCurrentUser } from '@/lib/payload';
+import { revalidatePath } from 'next/cache';
+
+const schema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+  price: z.number().min(0, 'El precio debe ser positivo'),
+});
+
+export const createProductAction = actionClient
+  .schema(schema)
+  .action(async ({ parsedInput }) => {
+    const user = await getCurrentUser();
+    if (!user || user.role !== 'owner') {
+      throw new Error('No autorizado');
+    }
+
+    const product = await createProduct(parsedInput, user.id);
+
+    revalidatePath('/products');
+
+    return { success: true, product };
+  });
+```
+
+#### 3. Client Component (ALWAYS use `useAction`)
+
+**❌ WRONG:**
+```typescript
+const result = await createProductAction({ name, price });
+```
+
+**✅ CORRECT:**
+```typescript
+'use client';
+
+import { useAction } from 'next-safe-action/hooks';
+import { createProductAction } from './actions';
+
+export function ProductForm() {
+  const { executeAsync, isExecuting } = useAction(createProductAction);
+
+  const handleSubmit = async (data: FormData) => {
+    const result = await executeAsync({
+      name: data.get('name') as string,
+      price: Number(data.get('price')),
+    });
+
+    if (result?.serverError) {
+      toast.error(result.serverError);
+      return;
+    }
+
+    if (result?.data?.success) {
+      toast.success('Producto creado');
+      router.refresh();
+    }
+  };
+
+  return (
+    <form action={handleSubmit}>
+      <button disabled={isExecuting}>Crear</button>
+    </form>
+  );
+}
+```
+
+### Setup next-safe-action
 
 ```typescript
 // src/lib/safe-action.ts
-import { createSafeActionClient } from "next-safe-action";
+import { createSafeActionClient } from 'next-safe-action';
 
 export const actionClient = createSafeActionClient({
   handleServerError(e) {
-    console.error("Action error:", e);
-    return "An error occurred";
+    console.error('Action error:', e);
+    return e instanceof Error ? e.message : 'Error desconocido';
   },
 });
 ```
 
-### Pattern for all actions:
+### Key Rules
 
-```typescript
-// src/components/[feature]/actions.ts
-"use server";
-
-import { actionClient } from "@/lib/safe-action";
-import { z } from "zod";
-import { revalidatePath } from "next/cache";
-
-const schema = z.object({
-  name: z.string().min(1),
-});
-
-export const createAction = actionClient
-  .schema(schema)
-  .action(async ({ parsedInput }) => {
-    // Use service layer
-    const result = await service.create(parsedInput);
-
-    // Revalidate affected paths
-    revalidatePath("/path");
-
-    return result;
-  });
-```
+1. **NEVER** call actions directly - always use `useAction` hook
+2. **NEVER** put business logic in actions - use services
+3. **ALWAYS** authenticate in actions before calling services
+4. **ALWAYS** validate with Zod schemas
+5. **ALWAYS** return `{ success: true, ...data }` format
 
 ---
 
