@@ -290,6 +290,205 @@ export function MyForm() {
 }
 ```
 
+### Zod Schemas - Patrón de Validación Detallada
+
+**UBICACIÓN Y ORGANIZACIÓN:**
+- Todos los schemas en `src/schemas/[feature]/`
+- Un archivo por tipo de schema (ej: `login-schema.ts`, `product-schema.ts`)
+- **NUNCA crear archivos `index.ts` de re-exportación**
+- Importaciones directas desde archivos específicos
+
+**Estructura de directorios:**
+```
+src/schemas/
+├── auth/
+│   ├── login-schema.ts
+│   └── register-schema.ts
+├── products/
+│   ├── product-schema.ts
+│   └── product-actions-schema.ts
+├── sellers/
+│   ├── invite-seller-schema.ts
+│   └── edit-seller-schema.ts
+└── stock-movements/
+    └── stock-movement-schema.ts
+```
+
+**PATRÓN OBLIGATORIO - Seguridad en Validaciones:**
+
+Todos los schemas DEBEN incluir:
+1. `required_error` e `invalid_type_error` en TODOS los campos
+2. `.trim()` en TODOS los strings (sanitización)
+3. `.max()` con límite de caracteres en TODOS los strings
+4. Mensajes descriptivos en español
+5. Export del tipo inferido
+
+**Ejemplo completo de schema:**
+
+```typescript
+import { z } from 'zod';
+
+export const loginSchema = z.object({
+  email: z
+    .string({
+      required_error: 'El email es requerido.',
+      invalid_type_error: 'El email debe ser una cadena de texto.',
+    })
+    .trim()
+    .email({
+      message: 'Por favor ingresa una dirección de email válida.',
+    }),
+  password: z
+    .string({
+      required_error: 'La contraseña es requerida.',
+      invalid_type_error: 'La contraseña debe ser una cadena de texto.',
+    })
+    .min(1, {
+      message: 'La contraseña es requerida.',
+    }),
+});
+
+export type LoginValues = z.infer<typeof loginSchema>;
+```
+
+**Validaciones específicas por tipo:**
+
+```typescript
+// STRING con longitud - SIEMPRE trim + max
+name: z
+  .string({
+    required_error: 'El nombre es requerido.',
+    invalid_type_error: 'El nombre debe ser una cadena de texto.',
+  })
+  .trim()
+  .min(1, {
+    message: 'El nombre es requerido.',
+  })
+  .max(100, {
+    message: 'El nombre debe tener como máximo 100 caracteres.',
+  }),
+
+// PASSWORD - Sin espacios, min 8, max 100
+password: z
+  .string({
+    required_error: 'La contraseña es requerida.',
+    invalid_type_error: 'La contraseña debe ser una cadena de texto.',
+  })
+  .min(8, {
+    message: 'La contraseña debe tener al menos 8 caracteres.',
+  })
+  .max(100, {
+    message: 'La contraseña debe tener como máximo 100 caracteres.',
+  })
+  .refine((val) => !val.includes(' '), {
+    message: 'La contraseña no puede contener espacios.',
+  }),
+
+// NUMBER positivo
+quantity: z
+  .number({
+    required_error: 'La cantidad es requerida.',
+    invalid_type_error: 'La cantidad debe ser un número.',
+  })
+  .min(0.01, {
+    message: 'La cantidad debe ser mayor a 0.',
+  }),
+
+// BOOLEAN
+isActive: z.boolean({
+  required_error: 'El estado es requerido.',
+  invalid_type_error: 'El estado debe ser un valor booleano.',
+}),
+
+// OPCIONAL - Usar optional() o or(z.literal(''))
+phone: z
+  .string({
+    invalid_type_error: 'El teléfono debe ser una cadena de texto.',
+  })
+  .max(20, {
+    message: 'El teléfono debe tener como máximo 20 caracteres.',
+  })
+  .optional()
+  .or(z.literal('')),
+
+// REGEX - Con mensaje descriptivo
+dni: z
+  .string({
+    invalid_type_error: 'El DNI debe ser una cadena de texto.',
+  })
+  .regex(/^\d{7,8}$/, {
+    message: 'El DNI debe tener 7 u 8 dígitos.',
+  })
+  .optional()
+  .or(z.literal('')),
+
+// ENUM - Con mensajes personalizados
+type: z.enum(['entry', 'exit', 'adjustment'], {
+  required_error: 'El tipo de movimiento es requerido.',
+  invalid_type_error: 'El tipo de movimiento debe ser entry, exit o adjustment.',
+}),
+
+// ARRAY - Con validación de elementos
+columns: z
+  .array(
+    z.string({
+      required_error: 'Cada columna debe ser una cadena de texto.',
+      invalid_type_error: 'Cada columna debe ser una cadena de texto.',
+    }),
+    {
+      required_error: 'Las columnas son requeridas.',
+      invalid_type_error: 'Las columnas deben ser un array.',
+    },
+  )
+  .min(1, {
+    message: 'Debe seleccionar al menos una columna.',
+  }),
+```
+
+**Importaciones - SIEMPRE directas:**
+
+```typescript
+// ✅ CORRECTO - Importación directa
+import { loginSchema, type LoginValues } from '@/schemas/auth/login-schema';
+import { productSchema } from '@/schemas/products/product-schema';
+
+// ❌ INCORRECTO - NO usar index.ts
+import { loginSchema } from '@/schemas';
+import { productSchema } from '@/schemas/products';
+```
+
+**Schemas para Server Actions:**
+
+Cuando necesites schemas adicionales para actions (con campos extra como `id`), defínelos en el mismo archivo:
+
+```typescript
+export const editSellerSchema = z.object({
+  name: z.string({ ... }).trim().min(1).max(100),
+  email: z.string({ ... }).trim().email(),
+  // ... otros campos
+});
+
+export type EditSellerValues = z.infer<typeof editSellerSchema>;
+
+// Schema extendido para la action
+export const updateSellerActionSchema = editSellerSchema.extend({
+  id: z.number({
+    required_error: 'El ID es requerido.',
+    invalid_type_error: 'El ID debe ser un número.',
+  }),
+});
+
+export type UpdateSellerActionValues = z.infer<typeof updateSellerActionSchema>;
+```
+
+**⚠️ REGLAS CRÍTICAS:**
+1. **NUNCA** omitir `required_error` e `invalid_type_error`
+2. **SIEMPRE** usar `.trim()` en strings antes de otras validaciones
+3. **SIEMPRE** limitar longitud con `.max()` en strings
+4. **NUNCA** crear archivos `index.ts` de re-exportación
+5. **SIEMPRE** exportar el tipo inferido con `export type`
+6. **SIEMPRE** mensajes de error en español descriptivos
+
 ### Server Actions Architecture
 
 **ARQUITECTURA OBLIGATORIA DE TRES CAPAS:**
@@ -356,17 +555,18 @@ export async function createBrand(name: string, ownerId: number): Promise<Brand>
   - Ejemplo: `src/components/sellers/actions.ts`
 - **Usar SIEMPRE**: `actionClient` de next-safe-action
 - **Contenido**: Auth + Validation + Llamada a servicios
+- **Schemas**: Importar desde `@/schemas/[feature]/` (NUNCA definir inline)
 
 ```typescript
 'use server';
 
-import { z } from 'zod';
 import { createBrand } from '@/app/services/entities';
 import { getCurrentUser } from '@/lib/payload';
 import { actionClient } from '@/lib/safe-action';
+import { createEntitySchema } from '@/schemas/products/product-actions-schema';
 
 export const createBrandAction = actionClient
-  .schema(z.object({ name: z.string().min(1, 'El nombre es requerido') }))
+  .schema(createEntitySchema)
   .action(async ({ parsedInput }) => {
     const user = await getCurrentUser();
     if (!user || user.role !== 'owner') {
@@ -380,6 +580,8 @@ export const createBrandAction = actionClient
 
 **Reglas del Action Layer:**
 - SIEMPRE usar `actionClient` de next-safe-action
+- Importar schemas desde `@/schemas/[feature]/[schema-file]`
+- NUNCA definir schemas inline en actions
 - Validar con `.schema()` de Zod
 - Autenticar con `getCurrentUser()`
 - Autorizar según roles
