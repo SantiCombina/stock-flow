@@ -1,13 +1,13 @@
 'use client';
 
-import { PackagePlus } from 'lucide-react';
+import { PackagePlus, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 import type { PopulatedProductVariant } from '@/app/services/products';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,9 +23,21 @@ interface StockMovementModalProps {
 }
 
 const movementTypes = [
-  { value: 'entry', label: '↑ Entrada (compra/reposición)' },
-  { value: 'exit', label: '↓ Salida (merma/daño)' },
-  { value: 'adjustment', label: '🔄 Ajuste de inventario' },
+  {
+    value: 'entry',
+    label: 'Entrada',
+    icon: <ArrowUp className="text-green-600" />,
+  },
+  {
+    value: 'exit',
+    label: 'Salida',
+    icon: <ArrowDown className="text-red-600" />,
+  },
+  {
+    value: 'adjustment',
+    label: 'Ajuste de inventario',
+    icon: <RotateCcw className="text-orange-500" />,
+  },
 ] as const;
 
 export function StockMovementModal({ isOpen, onClose, variant, onSuccess }: StockMovementModalProps) {
@@ -42,7 +54,6 @@ export function StockMovementModal({ isOpen, onClose, variant, onSuccess }: Stoc
     onClose();
   };
 
-  // Calculate preview of new stock
   const calculateNewStock = (): number | null => {
     if (!variant || !type || !quantity) return null;
 
@@ -98,10 +109,13 @@ export function StockMovementModal({ isOpen, onClose, variant, onSuccess }: Stoc
             <PackagePlus className="h-5 w-5" />
             Registrar movimiento de stock
           </DialogTitle>
+          <DialogDescription>
+            Completa los datos para registrar un movimiento de stock en este producto. Todos los campos marcados con *
+            son obligatorios.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Product info */}
           <div className="rounded-lg border bg-muted/50 p-3 space-y-1">
             <p className="text-sm font-medium">
               {variant.product.name} - {variant.presentation.label}
@@ -109,7 +123,6 @@ export function StockMovementModal({ isOpen, onClose, variant, onSuccess }: Stoc
             <p className="text-sm text-muted-foreground">Stock actual: {variant.stock} unidades</p>
           </div>
 
-          {/* Movement type */}
           <div className="space-y-2">
             <Label>
               Tipo de movimiento <span className="text-destructive">*</span>
@@ -121,14 +134,16 @@ export function StockMovementModal({ isOpen, onClose, variant, onSuccess }: Stoc
               <SelectContent>
                 {movementTypes.map((mt) => (
                   <SelectItem key={mt.value} value={mt.value}>
-                    {mt.label}
+                    <span className="flex items-center gap-2">
+                      {mt.icon}
+                      {mt.label}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Quantity */}
           <div className="space-y-2">
             <Label>
               {type === 'adjustment' ? 'Nuevo stock' : 'Cantidad'} <span className="text-destructive">*</span>
@@ -141,20 +156,8 @@ export function StockMovementModal({ isOpen, onClose, variant, onSuccess }: Stoc
               onChange={(e) => setQuantity(e.target.value)}
               placeholder={type === 'adjustment' ? 'Ej: 50' : 'Ej: 10'}
             />
-            {type && (
-              <p className="text-sm text-muted-foreground">
-                {type === 'adjustment'
-                  ? 'Ingresa el nuevo stock total'
-                  : type === 'entry'
-                    ? 'Cantidad a agregar al stock'
-                    : type === 'exit'
-                      ? 'Cantidad a restar del stock'
-                      : ''}
-              </p>
-            )}
           </div>
 
-          {/* Preview */}
           {newStock !== null && (
             <div
               className={`rounded-lg border p-3 ${
@@ -168,7 +171,6 @@ export function StockMovementModal({ isOpen, onClose, variant, onSuccess }: Stoc
             </div>
           )}
 
-          {/* Reason */}
           <div className="space-y-2">
             <Label>Observaciones</Label>
             <Textarea
@@ -178,10 +180,8 @@ export function StockMovementModal({ isOpen, onClose, variant, onSuccess }: Stoc
               maxLength={500}
               rows={3}
             />
-            <p className="text-sm text-muted-foreground">Opcional - Describe el motivo del movimiento</p>
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={handleClose} disabled={isExecuting}>
               Cancelar
