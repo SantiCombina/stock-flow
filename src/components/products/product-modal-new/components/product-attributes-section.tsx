@@ -7,7 +7,7 @@ import type { Brand, Category, Quality } from '@/payload-types';
 
 import type { EntityType } from '../types';
 
-import { EntitySelectField } from './EntitySelectField';
+import { EntitySelectField } from './entity-select-field';
 
 interface ProductFormData {
   name: string;

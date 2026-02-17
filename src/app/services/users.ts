@@ -1,10 +1,10 @@
-import { getPayloadClient } from "@/lib/payload";
+import { getPayloadClient } from '@/lib/payload';
 
 interface CreateUserData {
   name: string;
   email: string;
   password: string;
-  role: "admin" | "owner" | "seller";
+  role: 'admin' | 'owner' | 'seller';
   owner?: number;
 }
 
@@ -14,24 +14,22 @@ interface CreateUserResult {
   error?: string;
 }
 
-export async function createUser(
-  data: CreateUserData,
-): Promise<CreateUserResult> {
+export async function createUser(data: CreateUserData): Promise<CreateUserResult> {
   const payload = await getPayloadClient();
 
   const { docs: existingUsers } = await payload.find({
-    collection: "users",
+    collection: 'users',
     where: { email: { equals: data.email } },
     limit: 1,
   });
 
   if (existingUsers.length > 0) {
-    return { success: false, error: "El email ya está registrado" };
+    return { success: false, error: 'El email ya está registrado' };
   }
 
   try {
     const user = await payload.create({
-      collection: "users",
+      collection: 'users',
       data: {
         name: data.name,
         email: data.email,
@@ -46,8 +44,8 @@ export async function createUser(
       user: { id: user.id, email: user.email },
     };
   } catch (error) {
-    console.error("Error creating user:", error);
-    return { success: false, error: "Error al crear el usuario" };
+    console.error('Error creating user:', error);
+    return { success: false, error: 'Error al crear el usuario' };
   }
 }
 
@@ -55,7 +53,7 @@ export async function getUserByEmail(email: string) {
   const payload = await getPayloadClient();
 
   const { docs } = await payload.find({
-    collection: "users",
+    collection: 'users',
     where: { email: { equals: email } },
     limit: 1,
   });
@@ -79,16 +77,16 @@ export async function loginUser(data: LoginUserData): Promise<LoginUserResult> {
 
   try {
     const result = await payload.login({
-      collection: "users",
+      collection: 'users',
       data: { email: data.email, password: data.password },
     });
 
     if (!result.token) {
-      return { success: false, error: "Credenciales inválidas" };
+      return { success: false, error: 'Credenciales inválidas' };
     }
 
     return { success: true, token: result.token };
   } catch {
-    return { success: false, error: "Credenciales inválidas" };
+    return { success: false, error: 'Credenciales inválidas' };
   }
 }

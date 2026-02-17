@@ -1,11 +1,11 @@
-"use server";
+'use server';
 
-import { cookies } from "next/headers";
+import { cookies } from 'next/headers';
 
 export async function logout() {
   const cookieStore = await cookies();
 
-  cookieStore.delete("payload-token");
+  cookieStore.delete('payload-token');
 
   return { success: true };
 }

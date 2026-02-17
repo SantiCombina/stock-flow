@@ -1,29 +1,11 @@
-"use client";
+'use client';
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export interface Column<T> {
   key: string;
@@ -55,7 +37,7 @@ export function DataTable<T>({
   data,
   keyExtractor,
   isLoading = false,
-  emptyMessage = "No hay datos para mostrar",
+  emptyMessage = 'No hay datos para mostrar',
   page,
   totalPages,
   onPageChange,
@@ -151,10 +133,7 @@ export function DataTable<T>({
           {onItemsPerPageChange && (
             <div className="flex items-center gap-2">
               <span>Mostrar</span>
-              <Select
-                value={itemsPerPage.toString()}
-                onValueChange={(v) => onItemsPerPageChange(Number(v))}
-              >
+              <Select value={itemsPerPage.toString()} onValueChange={(v) => onItemsPerPageChange(Number(v))}>
                 <SelectTrigger className="w-16">
                   <SelectValue />
                 </SelectTrigger>
@@ -171,39 +150,19 @@ export function DataTable<T>({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onPageChange(1)}
-            disabled={page <= 1}
-          >
+          <Button variant="outline" size="icon" onClick={() => onPageChange(1)} disabled={page <= 1}>
             <ChevronsLeft className="h-4 w-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onPageChange(page - 1)}
-            disabled={page <= 1}
-          >
+          <Button variant="outline" size="icon" onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm">
             Página {page} de {totalPages}
           </span>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onPageChange(page + 1)}
-            disabled={page >= totalPages}
-          >
+          <Button variant="outline" size="icon" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages}>
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => onPageChange(totalPages)}
-            disabled={page >= totalPages}
-          >
+          <Button variant="outline" size="icon" onClick={() => onPageChange(totalPages)} disabled={page >= totalPages}>
             <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>

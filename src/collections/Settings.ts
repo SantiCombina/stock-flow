@@ -9,7 +9,6 @@ export const Settings: CollectionConfig = {
     description: 'Configuración de preferencias del usuario',
   },
   access: {
-
     create: ({ req: { user } }) => !!user,
 
     read: ({ req: { user } }) => {

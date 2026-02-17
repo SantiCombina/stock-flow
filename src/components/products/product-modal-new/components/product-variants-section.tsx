@@ -1,12 +1,12 @@
 'use client';
 
 import { Plus } from 'lucide-react';
-import type { Control, FieldErrors, UseFormRegister, UseFormWatch } from 'react-hook-form';
+import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import type { Presentation } from '@/payload-types';
 
-import { VariantCard } from './VariantCard';
+import { VariantCard } from './variant-card';
 
 interface ProductFormData {
   name: string;
@@ -30,7 +30,6 @@ interface ProductVariantsSectionProps {
   errors: FieldErrors<ProductFormData>;
   register: UseFormRegister<ProductFormData>;
   control: Control<ProductFormData>;
-  watch: UseFormWatch<ProductFormData>;
   onAddVariant: () => void;
   onRemoveVariant: (index: number) => void;
   presentations: Presentation[];
@@ -42,7 +41,6 @@ export function ProductVariantsSection({
   errors,
   register,
   control,
-  watch,
   onAddVariant,
   onRemoveVariant,
   presentations,
@@ -69,7 +67,6 @@ export function ProductVariantsSection({
             onDelete={onRemoveVariant}
             presentations={presentations}
             onCreatePresentation={onCreatePresentation}
-            presentationValue={watch(`variants.${index}.presentationId`)}
             register={register}
             control={control}
             errors={errors}

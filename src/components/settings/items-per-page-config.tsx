@@ -15,7 +15,10 @@ export function ItemsPerPageConfig({ initialValue, onSave }: ItemsPerPageConfigP
   const [isSaving, setIsSaving] = useState(false);
 
   const handleChange = async (newValue: string) => {
-    const numValue = parseInt(newValue, 10) as ItemsPerPageOption;
+    const parsed = parseInt(newValue, 10);
+    const numValue = ITEMS_PER_PAGE_OPTIONS.includes(parsed as ItemsPerPageOption)
+      ? (parsed as ItemsPerPageOption)
+      : initialValue;
     setValue(numValue);
     setIsSaving(true);
     try {

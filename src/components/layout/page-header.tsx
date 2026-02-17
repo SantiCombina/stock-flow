@@ -1,7 +1,7 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { Bell, Search } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { useUser } from '@/components/providers/user-provider';
 import { Button } from '@/components/ui/button';

@@ -12,10 +12,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-import { EntityDialog } from './components/EntityDialog';
-import { ProductAttributesSection } from './components/ProductAttributesSection';
-import { ProductInfoSection } from './components/ProductInfoSection';
-import { ProductVariantsSection } from './components/ProductVariantsSection';
+import { EntityDialog } from './components/entity-dialog';
+import { ProductAttributesSection } from './components/product-attributes-section';
+import { ProductInfoSection } from './components/product-info-section';
+import { ProductVariantsSection } from './components/product-variants-section';
 import { useEntityDialog } from './hooks/useEntityDialog';
 import { useProductForm } from './hooks/useProductForm';
 import type { ProductModalProps } from './types';
@@ -45,7 +45,6 @@ export function ProductModal({
     handleSubmit,
     errors,
     setValue,
-    watch,
     fields,
     handleAddVariant,
     handleRemoveVariant,
@@ -106,7 +105,6 @@ export function ProductModal({
                 errors={errors}
                 register={register}
                 control={control}
-                watch={watch}
                 onAddVariant={handleAddVariant}
                 onRemoveVariant={handleRemoveVariant}
                 presentations={presentations}

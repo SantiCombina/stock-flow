@@ -80,7 +80,7 @@ export function useEntityDialog({
             }
             if (result?.data?.brand) {
               const { brand } = result.data;
-              setBrands((prev) => [...prev, brand as Brand]);
+              setBrands((prev) => [...prev, brand]);
               setValue('brandId', brand.id.toString());
             }
             break;
@@ -93,7 +93,7 @@ export function useEntityDialog({
             }
             if (result?.data?.category) {
               const { category } = result.data;
-              setCategories((prev) => [...prev, category as Category]);
+              setCategories((prev) => [...prev, category]);
               setValue('categoryId', category.id.toString());
             }
             break;
@@ -106,7 +106,7 @@ export function useEntityDialog({
             }
             if (result?.data?.quality) {
               const { quality } = result.data;
-              setQualities((prev) => [...prev, quality as Quality]);
+              setQualities((prev) => [...prev, quality]);
               setValue('qualityId', quality.id.toString());
             }
             break;
@@ -121,7 +121,7 @@ export function useEntityDialog({
             }
             if (result?.data?.presentation) {
               const { presentation } = result.data;
-              setPresentations((prev) => [...prev, presentation as Presentation]);
+              setPresentations((prev) => [...prev, presentation]);
             }
             break;
           }
@@ -137,7 +137,7 @@ export function useEntityDialog({
             }
             if (result?.data?.brand) {
               const { brand } = result.data;
-              setBrands((prev) => prev.map((b) => (b.id === id ? (brand as Brand) : b)));
+              setBrands((prev) => prev.map((b) => (b.id === id ? brand : b)));
             }
             break;
           }
@@ -149,7 +149,7 @@ export function useEntityDialog({
             }
             if (result?.data?.category) {
               const { category } = result.data;
-              setCategories((prev) => prev.map((c) => (c.id === id ? (category as Category) : c)));
+              setCategories((prev) => prev.map((c) => (c.id === id ? category : c)));
             }
             break;
           }
@@ -161,7 +161,7 @@ export function useEntityDialog({
             }
             if (result?.data?.quality) {
               const { quality } = result.data;
-              setQualities((prev) => prev.map((q) => (q.id === id ? (quality as Quality) : q)));
+              setQualities((prev) => prev.map((q) => (q.id === id ? quality : q)));
             }
             break;
           }
@@ -176,7 +176,7 @@ export function useEntityDialog({
             }
             if (result?.data?.presentation) {
               const { presentation } = result.data;
-              setPresentations((prev) => prev.map((p) => (p.id === id ? (presentation as Presentation) : p)));
+              setPresentations((prev) => prev.map((p) => (p.id === id ? presentation : p)));
             }
             break;
           }

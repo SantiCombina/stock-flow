@@ -1,7 +1,4 @@
-import {
-  DEFAULT_SERVER_ERROR_MESSAGE,
-  createSafeActionClient,
-} from 'next-safe-action';
+import { DEFAULT_SERVER_ERROR_MESSAGE, createSafeActionClient } from 'next-safe-action';
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -30,9 +27,7 @@ export const actionClient = createSafeActionClient({
     console.warn(`[${actionId}] Output:`, result);
 
     if (duration < MIN_ACTION_DURATION) {
-      console.warn(
-        `[${actionId}] Waiting additional ${MIN_ACTION_DURATION - duration}ms to meet minimum duration`,
-      );
+      console.warn(`[${actionId}] Waiting additional ${MIN_ACTION_DURATION - duration}ms to meet minimum duration`);
       await wait(MIN_ACTION_DURATION - duration);
     }
 

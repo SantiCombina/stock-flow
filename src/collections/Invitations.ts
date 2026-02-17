@@ -12,7 +12,6 @@ export const Invitations: CollectionConfig = {
     create: ({ req: { user } }) => {
       if (!user) return false;
 
-
       return user.role === 'admin' || user.role === 'owner';
     },
     read: ({ req: { user } }) => {
@@ -32,7 +31,6 @@ export const Invitations: CollectionConfig = {
     beforeValidate: [
       ({ data, operation }) => {
         if (operation === 'create' && data) {
-
           data.token = randomBytes(32).toString('hex');
 
           data.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -43,7 +41,6 @@ export const Invitations: CollectionConfig = {
     beforeChange: [
       async ({ data, req, operation }) => {
         if (operation === 'create' && req.user && data) {
-
           if (req.user.role === 'owner' && data.role !== 'seller') {
             throw new Error('Solo podés invitar vendedores');
           }

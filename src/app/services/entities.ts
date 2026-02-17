@@ -14,7 +14,7 @@ export async function getBrands(ownerId: number): Promise<Brand[]> {
     overrideAccess: true,
   });
 
-  return result.docs as Brand[];
+  return result.docs;
 }
 
 export async function createBrand(name: string, ownerId: number): Promise<Brand> {
@@ -29,7 +29,7 @@ export async function createBrand(name: string, ownerId: number): Promise<Brand>
     overrideAccess: true,
   });
 
-  return brand as Brand;
+  return brand;
 }
 
 export async function updateBrand(id: number, name: string): Promise<Brand> {
@@ -42,7 +42,7 @@ export async function updateBrand(id: number, name: string): Promise<Brand> {
     overrideAccess: true,
   });
 
-  return brand as Brand;
+  return brand;
 }
 
 export async function getCategories(ownerId: number): Promise<Category[]> {
@@ -56,7 +56,7 @@ export async function getCategories(ownerId: number): Promise<Category[]> {
     overrideAccess: true,
   });
 
-  return result.docs as Category[];
+  return result.docs;
 }
 
 export async function createCategory(name: string, ownerId: number): Promise<Category> {
@@ -71,7 +71,7 @@ export async function createCategory(name: string, ownerId: number): Promise<Cat
     overrideAccess: true,
   });
 
-  return category as Category;
+  return category;
 }
 
 export async function updateCategory(id: number, name: string): Promise<Category> {
@@ -84,7 +84,7 @@ export async function updateCategory(id: number, name: string): Promise<Category
     overrideAccess: true,
   });
 
-  return category as Category;
+  return category;
 }
 
 export async function getQualities(ownerId: number): Promise<Quality[]> {
@@ -98,7 +98,7 @@ export async function getQualities(ownerId: number): Promise<Quality[]> {
     overrideAccess: true,
   });
 
-  return result.docs as Quality[];
+  return result.docs;
 }
 
 export async function createQuality(name: string, ownerId: number): Promise<Quality> {
@@ -113,7 +113,7 @@ export async function createQuality(name: string, ownerId: number): Promise<Qual
     overrideAccess: true,
   });
 
-  return quality as Quality;
+  return quality;
 }
 
 export async function updateQuality(id: number, name: string): Promise<Quality> {
@@ -126,7 +126,7 @@ export async function updateQuality(id: number, name: string): Promise<Quality> 
     overrideAccess: true,
   });
 
-  return quality as Quality;
+  return quality;
 }
 
 export async function getPresentations(ownerId: number): Promise<Presentation[]> {
@@ -140,7 +140,7 @@ export async function getPresentations(ownerId: number): Promise<Presentation[]>
     overrideAccess: true,
   });
 
-  return result.docs as Presentation[];
+  return result.docs;
 }
 
 export async function createPresentation(label: string, ownerId: number): Promise<Presentation> {
@@ -157,7 +157,7 @@ export async function createPresentation(label: string, ownerId: number): Promis
     overrideAccess: true,
   });
 
-  return presentation as Presentation;
+  return presentation;
 }
 
 export async function updatePresentation(id: number, label: string): Promise<Presentation> {
@@ -170,5 +170,5 @@ export async function updatePresentation(id: number, label: string): Promise<Pre
     overrideAccess: true,
   });
 
-  return presentation as Presentation;
+  return presentation;
 }

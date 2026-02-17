@@ -40,7 +40,6 @@ export function VariantCard({
   onDelete,
   presentations,
   onCreatePresentation,
-  presentationValue,
   register,
   control,
   errors,

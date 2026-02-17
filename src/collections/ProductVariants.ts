@@ -89,7 +89,6 @@ export const ProductVariants: CollectionConfig = {
     beforeChange: [
       async ({ req: { user, payload }, data }) => {
         if (user && !data.owner) {
-
           if (data.product) {
             try {
               const product = await payload.findByID({
@@ -102,9 +101,7 @@ export const ProductVariants: CollectionConfig = {
                   owner: product.owner,
                 };
               }
-            } catch {
-
-            }
+            } catch {}
           }
           return {
             ...data,

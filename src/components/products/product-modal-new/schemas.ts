@@ -16,9 +16,7 @@ export const productSchema = z.object({
   categoryId: z.string().optional(),
   qualityId: z.string().optional(),
   isActive: z.boolean(),
-  variants: z
-    .array(variantSchema)
-    .min(1, 'Debe agregar al menos una presentación'),
+  variants: z.array(variantSchema).min(1, 'Debe agregar al menos una presentación'),
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;

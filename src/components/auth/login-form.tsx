@@ -40,12 +40,12 @@ export function LoginForm() {
   async function onSubmit(data: LoginFormValues) {
     setError(null);
     const result = await executeAsync(data);
-    
+
     if (result?.serverError) {
       setError(result.serverError);
       return;
     }
-    
+
     if (result?.data?.success) {
       router.push('/');
       router.refresh();

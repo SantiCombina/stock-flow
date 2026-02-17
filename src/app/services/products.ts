@@ -1,7 +1,16 @@
 import type { Where } from 'payload';
 
 import { getPayloadClient } from '@/lib/payload';
-import type { Product, ProductVariant } from '@/payload-types';
+import type { Brand, Category, Product, ProductVariant, Presentation, Quality } from '@/payload-types';
+
+export interface PopulatedProductVariant extends Omit<ProductVariant, 'product' | 'presentation'> {
+  product: Product & {
+    brand?: Brand;
+    category?: Category;
+    quality?: Quality;
+  };
+  presentation: Presentation;
+}
 
 export interface CreateProductData {
   name: string;
@@ -86,7 +95,7 @@ export async function getProducts(
   });
 
   return {
-    docs: result.docs as Product[],
+    docs: result.docs,
     totalDocs: result.totalDocs,
     totalPages: result.totalPages,
     page: result.page!,
@@ -106,7 +115,7 @@ export async function getProductById(id: number): Promise<Product | null> {
       depth: 2, // Populate brand, category, quality, image
       overrideAccess: true,
     });
-    return product as Product;
+    return product;
   } catch {
     return null;
   }
@@ -115,10 +124,7 @@ export async function getProductById(id: number): Promise<Product | null> {
 /**
  * Crea un nuevo producto
  */
-export async function createProduct(
-  data: CreateProductData,
-  ownerId: number,
-): Promise<Product> {
+export async function createProduct(data: CreateProductData, ownerId: number): Promise<Product> {
   const payload = await getPayloadClient();
 
   const product = await payload.create({
@@ -130,16 +136,13 @@ export async function createProduct(
     overrideAccess: true,
   });
 
-  return product as Product;
+  return product;
 }
 
 /**
  * Actualiza un producto
  */
-export async function updateProduct(
-  id: number,
-  data: UpdateProductData,
-): Promise<Product> {
+export async function updateProduct(id: number, data: UpdateProductData): Promise<Product> {
   const payload = await getPayloadClient();
 
   const product = await payload.update({
@@ -149,7 +152,7 @@ export async function updateProduct(
     overrideAccess: true,
   });
 
-  return product as Product;
+  return product;
 }
 
 /**
@@ -179,14 +182,7 @@ export async function deleteProduct(id: number): Promise<void> {
   });
 }
 
-export interface CreateVariantData {
-  code: string;
-  product: number;
-  presentation: number;
-  stock?: number;
-  minStock?: number;
-  price: number;
-}
+export type CreateVariantData = Omit<ProductVariant, 'id' | 'createdAt' | 'updatedAt' | 'owner'>;
 
 export interface UpdateVariantData {
   code?: string;
@@ -199,9 +195,7 @@ export interface UpdateVariantData {
 /**
  * Obtiene todas las variantes de un producto
  */
-export async function getVariantsByProduct(
-  productId: number,
-): Promise<ProductVariant[]> {
+export async function getVariantsByProduct(productId: number): Promise<ProductVariant[]> {
   const payload = await getPayloadClient();
 
   const result = await payload.find({
@@ -212,15 +206,13 @@ export async function getVariantsByProduct(
     overrideAccess: true,
   });
 
-  return result.docs as ProductVariant[];
+  return result.docs;
 }
 
 /**
  * Obtiene una variante por ID
  */
-export async function getVariantById(
-  id: number,
-): Promise<ProductVariant | null> {
+export async function getVariantById(id: number): Promise<ProductVariant | null> {
   const payload = await getPayloadClient();
 
   try {
@@ -229,7 +221,7 @@ export async function getVariantById(
       id,
       overrideAccess: true,
     });
-    return variant as ProductVariant;
+    return variant;
   } catch {
     return null;
   }
@@ -238,33 +230,22 @@ export async function getVariantById(
 /**
  * Crea una nueva variante
  */
-export async function createVariant(
-  data: CreateVariantData,
-  ownerId: number,
-): Promise<ProductVariant> {
+export async function createVariant(data: CreateVariantData, ownerId: number): Promise<ProductVariant> {
   const payload = await getPayloadClient();
-
-  const variantData = {
-    ...data,
-    owner: ownerId,
-  };
 
   const variant = await payload.create({
     collection: 'product-variants',
-    data: variantData as any,
+    data: { ...data, owner: ownerId },
     overrideAccess: true,
   });
 
-  return variant as ProductVariant;
+  return variant;
 }
 
 /**
  * Actualiza una variante
  */
-export async function updateVariant(
-  id: number,
-  data: UpdateVariantData,
-): Promise<ProductVariant> {
+export async function updateVariant(id: number, data: UpdateVariantData): Promise<ProductVariant> {
   const payload = await getPayloadClient();
 
   const variant = await payload.update({
@@ -274,7 +255,7 @@ export async function updateVariant(
     overrideAccess: true,
   });
 
-  return variant as ProductVariant;
+  return variant;
 }
 
 /**
@@ -322,7 +303,7 @@ export async function getAllVariants(
     overrideAccess: true,
   });
 
-  let variants = result.docs as ProductVariant[];
+  let variants = result.docs;
   if (options?.lowStock) {
     variants = variants.filter((v) => v.stock <= v.minStock);
   }
@@ -357,7 +338,7 @@ export async function getVariantsWithProducts(
     sort?: string;
   },
 ): Promise<{
-  docs: ProductVariant[];
+  docs: PopulatedProductVariant[];
   totalDocs: number;
   totalPages: number;
   page: number;
@@ -369,13 +350,7 @@ export async function getVariantsWithProducts(
   };
 
   let productIds: number[] | undefined;
-  if (
-    filters?.brand ||
-    filters?.category ||
-    filters?.quality ||
-    filters?.isActive !== undefined ||
-    filters?.search
-  ) {
+  if (filters?.brand || filters?.category || filters?.quality || filters?.isActive !== undefined || filters?.search) {
     const productWhere: Where = {
       owner: { equals: ownerId },
     };
@@ -436,7 +411,7 @@ export async function getVariantsWithProducts(
   });
 
   return {
-    docs: result.docs as ProductVariant[],
+    docs: result.docs as PopulatedProductVariant[],
     totalDocs: result.totalDocs,
     totalPages: result.totalPages,
     page: result.page!,

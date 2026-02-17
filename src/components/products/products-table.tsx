@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
+import type { PopulatedProductVariant } from '@/app/services/products';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,18 +27,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSettings } from '@/contexts/settings-context';
 import { COLUMN_LABELS } from '@/lib/constants/table-columns';
-import type { ProductVariant, Product, Brand, Category, Quality, Presentation } from '@/payload-types';
+import type { Product } from '@/payload-types';
 
 import { getVariantsAction, deleteProductAction } from './actions';
-
-interface VariantWithProduct extends ProductVariant {
-  product: Product & {
-    brand?: Brand;
-    category?: Category;
-    quality?: Quality;
-  };
-  presentation: Presentation;
-}
 
 interface ProductsTableProps {
   searchQuery?: string;
@@ -48,7 +40,7 @@ export function ProductsTable({ searchQuery = '', onEdit }: ProductsTableProps) 
   const router = useRouter();
   const { getItemsPerPage, getVisibleColumns, isLoading: isSettingsLoading } = useSettings();
 
-  const [variants, setVariants] = useState<VariantWithProduct[]>([]);
+  const [variants, setVariants] = useState<PopulatedProductVariant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -82,7 +74,7 @@ export function ProductsTable({ searchQuery = '', onEdit }: ProductsTableProps) 
       }
 
       if (result?.data?.success) {
-        setVariants(result.data.docs as VariantWithProduct[]);
+        setVariants(result.data.docs);
         setTotalPages(result.data.totalPages);
         setTotalItems(result.data.totalDocs);
       } else {
@@ -142,7 +134,7 @@ export function ProductsTable({ searchQuery = '', onEdit }: ProductsTableProps) 
     return visibleColumns.includes(columnKey);
   };
 
-  const allColumns: Record<string, Column<VariantWithProduct>> = {
+  const allColumns: Record<string, Column<PopulatedProductVariant>> = {
     image: {
       key: 'image',
       header: '',
@@ -268,7 +260,7 @@ export function ProductsTable({ searchQuery = '', onEdit }: ProductsTableProps) 
     },
   };
 
-  const actionsColumn: Column<VariantWithProduct> = {
+  const actionsColumn: Column<PopulatedProductVariant> = {
     key: 'actions',
     header: '',
     cell: (variant) => {
@@ -307,7 +299,7 @@ export function ProductsTable({ searchQuery = '', onEdit }: ProductsTableProps) 
     className: 'w-16',
   };
 
-  const columns: Column<VariantWithProduct>[] = [
+  const columns: Column<PopulatedProductVariant>[] = [
     allColumns.image,
     ...Object.entries(allColumns)
       .filter(([key]) => key !== 'image' && shouldShowColumn(key))

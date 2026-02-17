@@ -1,11 +1,12 @@
 import {
   DEFAULT_COLUMNS,
   DEFAULT_ITEMS_PER_PAGE,
+  ITEMS_PER_PAGE_OPTIONS,
   type ItemsPerPageOption,
   type TableName,
-} from "@/lib/constants/table-columns";
-import { getPayloadClient } from "@/lib/payload";
-import type { Setting } from "@/payload-types";
+} from '@/lib/constants/table-columns';
+import { getPayloadClient } from '@/lib/payload';
+import type { Setting } from '@/payload-types';
 
 interface SettingsColumns {
   productsColumns?: { column: string }[];
@@ -25,7 +26,7 @@ export async function getSettings(userId: number): Promise<Setting> {
   const payload = await getPayloadClient();
 
   const { docs } = await payload.find({
-    collection: "settings",
+    collection: 'settings',
     where: { user: { equals: userId } },
     limit: 1,
   });
@@ -36,7 +37,7 @@ export async function getSettings(userId: number): Promise<Setting> {
 
   try {
     const settings = await payload.create({
-      collection: "settings",
+      collection: 'settings',
       data: {
         user: userId,
         productsColumns: DEFAULT_COLUMNS.products.map((col) => ({
@@ -49,18 +50,14 @@ export async function getSettings(userId: number): Promise<Setting> {
         })),
         historyColumns: DEFAULT_COLUMNS.history.map((col) => ({ column: col })),
         sellersColumns: DEFAULT_COLUMNS.sellers.map((col) => ({ column: col })),
-        itemsPerPage: DEFAULT_ITEMS_PER_PAGE.toString() as
-          | "10"
-          | "25"
-          | "50"
-          | "100",
+        itemsPerPage: DEFAULT_ITEMS_PER_PAGE.toString() as '10' | '25' | '50' | '100',
       },
     });
 
     return settings;
   } catch (error) {
     const { docs: retryDocs } = await payload.find({
-      collection: "settings",
+      collection: 'settings',
       where: { user: { equals: userId } },
       limit: 1,
     });
@@ -76,16 +73,13 @@ export async function getSettings(userId: number): Promise<Setting> {
 /**
  * Actualiza las configuraciones del usuario
  */
-export async function updateSettings(
-  userId: number,
-  data: Partial<Setting>,
-): Promise<Setting> {
+export async function updateSettings(userId: number, data: Partial<Setting>): Promise<Setting> {
   const payload = await getPayloadClient();
 
   const settings = await getSettings(userId);
 
   const updated = await payload.update({
-    collection: "settings",
+    collection: 'settings',
     id: settings.id,
     data,
   });
@@ -96,19 +90,15 @@ export async function updateSettings(
 /**
  * Actualiza las columnas visibles de una tabla específica
  */
-export async function updateTableColumns(
-  userId: number,
-  tableName: TableName,
-  columns: string[],
-): Promise<Setting> {
+export async function updateTableColumns(userId: number, tableName: TableName, columns: string[]): Promise<Setting> {
   const payload = await getPayloadClient();
   const settings = await getSettings(userId);
 
-  const fieldName = `${tableName}Columns` as keyof SettingsColumns;
+  const fieldName = `${tableName}Columns` as const;
   const arrayData = columns.map((col) => ({ column: col }));
 
   const updated = await payload.update({
-    collection: "settings",
+    collection: 'settings',
     id: settings.id,
     data: {
       [fieldName]: arrayData,
@@ -121,16 +111,13 @@ export async function updateTableColumns(
 /**
  * Extrae las columnas visibles de una tabla desde las settings
  */
-export function getVisibleColumns(
-  settings: Setting | null,
-  tableName: TableName,
-): string[] {
+export function getVisibleColumns(settings: Setting | null, tableName: TableName): string[] {
   if (!settings) {
     return DEFAULT_COLUMNS[tableName];
   }
 
   const fieldName = `${tableName}Columns` as keyof SettingsColumns;
-  const columnsArray = settings[fieldName] as { column: string }[] | undefined;
+  const columnsArray = settings[fieldName as keyof Setting] as { column: string }[] | undefined;
 
   if (!columnsArray || columnsArray.length === 0) {
     return DEFAULT_COLUMNS[tableName];
@@ -142,11 +129,7 @@ export function getVisibleColumns(
 /**
  * Verifica si una columna específica debe mostrarse
  */
-export function isColumnVisible(
-  settings: Setting | null,
-  tableName: TableName,
-  columnKey: string,
-): boolean {
+export function isColumnVisible(settings: Setting | null, tableName: TableName, columnKey: string): boolean {
   const visibleColumns = getVisibleColumns(settings, tableName);
   return visibleColumns.includes(columnKey);
 }
@@ -159,8 +142,10 @@ export function getItemsPerPage(settings: Setting | null): ItemsPerPageOption {
     return DEFAULT_ITEMS_PER_PAGE;
   }
 
-  const value = parseInt(settings.itemsPerPage, 10) as ItemsPerPageOption;
-  return [10, 25, 50, 100].includes(value) ? value : DEFAULT_ITEMS_PER_PAGE;
+  const value = parseInt(settings.itemsPerPage, 10);
+  return ITEMS_PER_PAGE_OPTIONS.includes(value as ItemsPerPageOption)
+    ? (value as ItemsPerPageOption)
+    : DEFAULT_ITEMS_PER_PAGE;
 }
 
 /**
@@ -168,11 +153,11 @@ export function getItemsPerPage(settings: Setting | null): ItemsPerPageOption {
  */
 export function getAllColumnsConfig(settings: Setting | null): ColumnsConfig {
   return {
-    products: getVisibleColumns(settings, "products"),
-    clients: getVisibleColumns(settings, "clients"),
-    sales: getVisibleColumns(settings, "sales"),
-    assignments: getVisibleColumns(settings, "assignments"),
-    history: getVisibleColumns(settings, "history"),
-    sellers: getVisibleColumns(settings, "sellers"),
+    products: getVisibleColumns(settings, 'products'),
+    clients: getVisibleColumns(settings, 'clients'),
+    sales: getVisibleColumns(settings, 'sales'),
+    assignments: getVisibleColumns(settings, 'assignments'),
+    history: getVisibleColumns(settings, 'history'),
+    sellers: getVisibleColumns(settings, 'sellers'),
   };
 }

@@ -38,5 +38,4 @@ export interface VariantCardProps {
   onDelete: (index: number) => void;
   presentations: Presentation[];
   onCreatePresentation: () => void;
-  presentationValue: string | undefined;
 }
