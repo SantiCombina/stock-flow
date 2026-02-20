@@ -23,6 +23,8 @@
     "@payloadcms/richtext-lexical": "3.75.0",
     "@payloadcms/storage-uploadthing": "^3.75.0",
     "@payloadcms/ui": "3.75.0",
+    "@react-email/components": "^1.0.8",
+    "@react-email/render": "^2.0.4",
     "@tailwindcss/postcss": "^4.1.18",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",

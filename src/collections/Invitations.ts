@@ -1,6 +1,10 @@
 import { randomBytes } from 'crypto';
 
+import { render } from '@react-email/render';
 import type { CollectionConfig } from 'payload';
+
+import { InvitationEmail } from '@/emails/invitation-email';
+import { resend } from '@/lib/resend';
 
 export const Invitations: CollectionConfig = {
   slug: 'invitations',
@@ -60,21 +64,16 @@ export const Invitations: CollectionConfig = {
           const roleName = doc.role === 'owner' ? 'Dueño' : 'Vendedor';
 
           try {
-            await req.payload.sendEmail({
+            const html = await render(InvitationEmail({ registerUrl, roleName }));
+            const { error } = await resend.emails.send({
+              from: process.env.EMAIL_FROM || 'Stocker <noreply@stocker.com>',
               to: doc.email,
               subject: 'Invitación a Stocker',
-              html: `
-                <h1>¡Fuiste invitado a Stocker!</h1>
-                <p>Alguien te invitó a unirte como <strong>${roleName}</strong>.</p>
-                <p>Hacé clic en el siguiente enlace para crear tu cuenta:</p>
-                <a href="${registerUrl}" style="display: inline-block; padding: 12px 24px; background-color: #f59e0b; color: white; text-decoration: none; border-radius: 6px;">
-                  Crear Cuenta
-                </a>
-                <p style="margin-top: 20px; color: #666;">
-                  Este enlace expira en 7 días.
-                </p>
-              `,
+              html,
             });
+            if (error) {
+              req.payload.logger.error({ err: error, msg: 'Error enviando email de invitación' });
+            }
           } catch (error) {
             req.payload.logger.error({ err: error, msg: 'Error enviando email de invitación' });
           }
