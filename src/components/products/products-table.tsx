@@ -374,10 +374,7 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              variant="destructive"
-            >
+            <AlertDialogAction onClick={handleDelete} variant="destructive">
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

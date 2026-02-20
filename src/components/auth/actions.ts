@@ -23,6 +23,7 @@ export const loginUser = actionClient.schema(loginSchema).action(async ({ parsed
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 30,
   });
 
   return { success: true };
