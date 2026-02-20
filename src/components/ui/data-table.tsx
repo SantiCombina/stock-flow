@@ -1,16 +1,17 @@
 'use client';
 
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { type ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 
 export interface Column<T> {
   key: string;
-  header: string;
-  cell: (item: T) => React.ReactNode;
+  header: ReactNode;
+  cell: (item: T) => ReactNode;
   className?: string;
 }
 
@@ -20,151 +21,122 @@ interface DataTableProps<T> {
   keyExtractor: (item: T) => string | number;
   isLoading?: boolean;
   emptyMessage?: string;
-
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-
   itemsPerPage: number;
-  onItemsPerPageChange?: (value: number) => void;
-  itemsPerPageOptions?: number[];
-
+  onItemsPerPageChange?: (itemsPerPage: number) => void;
   totalItems: number;
 }
+
+const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
+const SKELETON_ROWS = 5;
 
 export function DataTable<T>({
   columns,
   data,
   keyExtractor,
   isLoading = false,
-  emptyMessage = 'No hay datos para mostrar',
+  emptyMessage = 'No hay datos',
   page,
   totalPages,
   onPageChange,
   itemsPerPage,
   onItemsPerPageChange,
-  itemsPerPageOptions = [10, 25, 50, 100],
   totalItems,
 }: DataTableProps<T>) {
-  const startItem = (page - 1) * itemsPerPage + 1;
-  const endItem = Math.min(page * itemsPerPage, totalItems);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {columns.map((col) => (
-                  <TableHead key={col.key} className={col.className}>
-                    {col.header}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: itemsPerPage }).map((_, i) => (
-                <TableRow key={i}>
-                  {columns.map((col) => (
-                    <TableCell key={col.key}>
-                      <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-4 w-48" />
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-8" />
-            <Skeleton className="h-8 w-8" />
-            <Skeleton className="h-8 w-8" />
-            <Skeleton className="h-8 w-8" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12">
-        <p className="text-muted-foreground">{emptyMessage}</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="rounded-md border bg-white">
+    <div className="space-y-3">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              {columns.map((col) => (
-                <TableHead key={col.key} className={col.className}>
-                  {col.header}
+              {columns.map((column) => (
+                <TableHead key={column.key} className={column.className}>
+                  {column.header}
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item) => (
-              <TableRow key={keyExtractor(item)}>
-                {columns.map((col) => (
-                  <TableCell key={col.key} className={col.className}>
-                    {col.cell(item)}
-                  </TableCell>
-                ))}
+            {isLoading ? (
+              Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+                <TableRow key={i}>
+                  {columns.map((column) => (
+                    <TableCell key={column.key} className={column.className}>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="py-10 text-center text-muted-foreground">
+                  {emptyMessage}
+                </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              data.map((item) => (
+                <TableRow key={keyExtractor(item)}>
+                  {columns.map((column) => (
+                    <TableCell key={column.key} className={cn(column.className)}>
+                      {column.cell(item)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>
-            Mostrando {startItem} a {endItem} de {totalItems} elementos
-          </span>
+      <div className="flex items-center justify-between px-1 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
           {onItemsPerPageChange && (
-            <div className="flex items-center gap-2">
-              <span>Mostrar</span>
-              <Select value={itemsPerPage.toString()} onValueChange={(v) => onItemsPerPageChange(Number(v))}>
-                <SelectTrigger className="w-16">
+            <>
+              <span>Filas por página</span>
+              <Select value={String(itemsPerPage)} onValueChange={(v) => onItemsPerPageChange(Number(v))}>
+                <SelectTrigger className="h-8 w-17.5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {itemsPerPageOptions.map((option) => (
-                    <SelectItem key={option} value={option.toString()}>
-                      {option}
+                  {ITEMS_PER_PAGE_OPTIONS.map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => onPageChange(1)} disabled={page <= 1}>
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm">
-            Página {page} de {totalPages}
+        <div className="flex items-center gap-3">
+          <span>
+            {totalItems === 0
+              ? '0 resultados'
+              : `${(page - 1) * itemsPerPage + 1}–${Math.min(page * itemsPerPage, totalItems)} de ${totalItems}`}
           </span>
-          <Button variant="outline" size="icon" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => onPageChange(totalPages)} disabled={page >= totalPages}>
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => onPageChange(page - 1)}
+              disabled={page <= 1 || isLoading}
+            >
+              ‹
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => onPageChange(page + 1)}
+              disabled={page >= totalPages || isLoading}
+            >
+              ›
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -7,12 +7,10 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useSettings } from '@/contexts/settings-context';
-import { TABLE_COLUMNS, COLUMN_LABELS, type TableName } from '@/lib/constants/table-columns';
+import { COLUMN_LABELS, TABLE_COLUMNS, type TableName } from '@/lib/constants/table-columns';
 
 interface ColumnVisibilityDropdownProps {
   tableName: TableName;
@@ -21,35 +19,37 @@ interface ColumnVisibilityDropdownProps {
 export function ColumnVisibilityDropdown({ tableName }: ColumnVisibilityDropdownProps) {
   const { getVisibleColumns, updateTableColumns } = useSettings();
 
+  const allColumns = TABLE_COLUMNS[tableName] as readonly string[];
   const visibleColumns = getVisibleColumns(tableName);
-  const availableColumns = TABLE_COLUMNS[tableName];
 
-  const handleToggle = async (column: string, checked: boolean) => {
-    if (!checked && visibleColumns.length <= 1) return;
-    const next = checked ? [...visibleColumns, column] : visibleColumns.filter((c) => c !== column);
-    await updateTableColumns(tableName, next);
+  const handleToggle = (columnKey: string, checked: boolean) => {
+    const updated = checked ? [...visibleColumns, columnKey] : visibleColumns.filter((c) => c !== columnKey);
+    void updateTableColumns(tableName, updated);
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="h-9 gap-1.5">
           <SlidersHorizontal className="h-4 w-4" />
-          <span className="hidden sm:inline">Columnas</span>
+          Columnas
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel>Columnas visibles</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {availableColumns.map((column) => (
-          <DropdownMenuCheckboxItem
-            key={column}
-            checked={visibleColumns.includes(column)}
-            onCheckedChange={(checked) => handleToggle(column, checked)}
-          >
-            {COLUMN_LABELS[column] ?? column}
-          </DropdownMenuCheckboxItem>
-        ))}
+      <DropdownMenuContent align="end">
+        {allColumns.map((columnKey) => {
+          const isVisible = visibleColumns.includes(columnKey);
+          const label = COLUMN_LABELS[columnKey] ?? columnKey;
+
+          return (
+            <DropdownMenuCheckboxItem
+              key={columnKey}
+              checked={isVisible}
+              onCheckedChange={(checked) => handleToggle(columnKey, checked)}
+            >
+              {label}
+            </DropdownMenuCheckboxItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

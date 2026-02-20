@@ -129,27 +129,23 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, [state.itemsPerPage]);
 
   const updateTableColumns = useCallback(async (tableName: TableName, columns: string[]) => {
+    const key = `${tableName}Columns` as keyof SettingsState;
+    let previous: string[] = [];
+
+    setState((prev) => {
+      previous = (prev[key] as string[]) ?? [];
+      return { ...prev, [key]: columns };
+    });
+
     try {
-      const result = await updateTableColumnsAction({
-        tableName,
-        columns,
-      });
+      const result = await updateTableColumnsAction({ tableName, columns });
 
       if (result?.serverError) {
+        setState((prev) => ({ ...prev, [key]: previous }));
         toast.error(result.serverError);
-        return;
-      }
-
-      if (result?.data?.success) {
-        setState((prev) => ({
-          ...prev,
-          [`${tableName}Columns`]: columns,
-        }));
-        toast.success('Columnas actualizadas');
-      } else {
-        toast.error('Error al actualizar columnas');
       }
     } catch {
+      setState((prev) => ({ ...prev, [key]: previous }));
       toast.error('Error al actualizar columnas');
     }
   }, []);
