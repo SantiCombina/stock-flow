@@ -59,8 +59,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (hasFetchedRef.current) return;
     hasFetchedRef.current = true;
 
-    getSettingsAction()
-      .then((result) => {
+    const fetchAndApplySettings = async () => {
+      try {
+        const result = await getSettingsAction();
+
         if (result?.serverError) {
           setState((prev) => ({
             ...prev,
@@ -91,14 +93,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             error: 'Error al cargar configuraciones',
           }));
         }
-      })
-      .catch(() => {
+      } catch {
         setState((prev) => ({
           ...prev,
           isLoading: false,
           error: 'Error al cargar configuraciones',
         }));
-      });
+      }
+    };
+
+    void fetchAndApplySettings();
   }, []);
 
   const getVisibleColumns = useCallback(
@@ -177,7 +181,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const reloadSettings = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
     try {
       const result = await getSettingsAction();
 
@@ -208,14 +211,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         setState((prev) => ({
           ...prev,
           isLoading: false,
-          error: 'Error al recargar configuraciones',
+          error: 'Error al cargar configuraciones',
         }));
       }
     } catch {
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: 'Error al recargar configuraciones',
+        error: 'Error al cargar configuraciones',
       }));
     }
   }, []);

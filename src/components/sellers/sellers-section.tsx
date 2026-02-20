@@ -1,12 +1,14 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { PageHeader } from '@/components/layout/page-header';
 import { useUserOptional } from '@/components/providers/user-provider';
 import { Button } from '@/components/ui/button';
+import { ColumnVisibilityDropdown } from '@/components/ui/column-visibility-dropdown';
+import { Input } from '@/components/ui/input';
 import type { User } from '@/payload-types';
 
 import { EditSellerModal } from './edit-seller-modal';
@@ -67,7 +69,14 @@ export function SellersSection({ sellers }: SellersSectionProps) {
         }
       />
 
-      <main className="flex-1 space-y-4 px-6 pb-6">
+      <main className="flex-1 space-y-4 px-4 pb-6 sm:px-6">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 sm:max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input type="search" placeholder="Buscar por nombre..." className="pl-8" />
+          </div>
+          <ColumnVisibilityDropdown tableName="sellers" />
+        </div>
         <SellersTable sellers={sellers} onEdit={handleOpenEditModal} />
       </main>
 

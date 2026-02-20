@@ -1,11 +1,10 @@
 'use client';
 
-import { Bell, Search } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { useUser } from '@/components/providers/user-provider';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
 import { UserDropdown } from './user-dropdown';
@@ -21,18 +20,12 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between border-b bg-card px-6">
-        <div className="flex items-center gap-4">
-          <SidebarTrigger />
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Buscar productos, vendedores..." className="w-80 pl-9" />
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
+      <header className="flex h-14 items-center justify-between border-b bg-card px-4">
+        <SidebarTrigger />
+        <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="relative rounded-full">
             <Bell className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
               3
             </span>
           </Button>
@@ -40,15 +33,13 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
         </div>
       </header>
 
-      <div className="p-6">
-        <div className="flex flex-col sm:flex-row sm:items-stretch sm:justify-between gap-4 h-full">
-          <div className="flex flex-col justify-between flex-1">
-            <div>
-              <h1 className="text-2xl font-bold">{title}</h1>
-              <p className="text-muted-foreground">{description}</p>
-            </div>
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-xl font-bold sm:text-2xl">{title}</h1>
+            <p className="text-sm text-muted-foreground">{description}</p>
           </div>
-          {actions && <div className="flex items-end sm:items-end shrink-0 h-full">{actions}</div>}
+          {actions && <div className="shrink-0">{actions}</div>}
         </div>
       </div>
     </>

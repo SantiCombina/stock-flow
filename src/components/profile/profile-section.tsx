@@ -26,7 +26,7 @@ export function ProfileSection() {
     <div className="flex flex-1 flex-col">
       <PageHeader title="Mi Perfil" description="Información de tu cuenta" />
 
-      <main className="flex-1 px-6 pb-6">
+      <main className="flex-1 px-4 pb-6 sm:px-6">
         <Card className="max-w-xl">
           <CardHeader>
             <CardTitle>Datos Personales</CardTitle>

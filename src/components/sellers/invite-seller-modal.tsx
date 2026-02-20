@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, User } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -92,10 +92,7 @@ export function InviteSellerModal({ isOpen, onClose, onSuccess }: InviteSellerMo
                   <FormItem>
                     <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} placeholder="Juan Pérez" className="pl-9" />
-                      </div>
+                      <Input {...field} placeholder="Juan Pérez" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -109,10 +106,7 @@ export function InviteSellerModal({ isOpen, onClose, onSuccess }: InviteSellerMo
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} type="email" placeholder="vendedor@ejemplo.com" className="pl-9" />
-                      </div>
+                      <Input {...field} type="email" placeholder="vendedor@ejemplo.com" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

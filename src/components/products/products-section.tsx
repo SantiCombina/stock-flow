@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { PageHeader } from '@/components/layout/page-header';
 import { useUserOptional } from '@/components/providers/user-provider';
 import { Button } from '@/components/ui/button';
+import { ColumnVisibilityDropdown } from '@/components/ui/column-visibility-dropdown';
 import { Input } from '@/components/ui/input';
 import type { Brand, Category, Quality, Presentation } from '@/payload-types';
 
@@ -114,10 +115,9 @@ export function ProductsSection() {
         }
       />
 
-      <main className="flex-1 space-y-4 px-6 pb-6">
-        {/* Search */}
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
+      <main className="flex-1 space-y-4 px-4 pb-6 sm:px-6">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 sm:max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
@@ -127,6 +127,7 @@ export function ProductsSection() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          <ColumnVisibilityDropdown tableName="products" />
         </div>
 
         {/* Products Table */}

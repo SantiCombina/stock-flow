@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Building2, FileText, IdCard, Mail, Phone, User as UserIcon } from 'lucide-react';
 import { useAction } from 'next-safe-action/hooks';
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -88,7 +87,7 @@ export function EditSellerModal({ isOpen, onClose, onSuccess, seller }: EditSell
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-140 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-140">
         <DialogHeader>
           <DialogTitle>Editar vendedor</DialogTitle>
           <DialogDescription>Modifica los datos del vendedor</DialogDescription>
@@ -105,10 +104,7 @@ export function EditSellerModal({ isOpen, onClose, onSuccess, seller }: EditSell
                   <FormItem>
                     <FormLabel>Nombre completo</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <UserIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} placeholder="Juan Pérez" className="pl-9" />
-                      </div>
+                      <Input {...field} placeholder="Juan Pérez" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -122,10 +118,7 @@ export function EditSellerModal({ isOpen, onClose, onSuccess, seller }: EditSell
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} type="email" placeholder="vendedor@ejemplo.com" className="pl-9" />
-                      </div>
+                      <Input {...field} type="email" placeholder="vendedor@ejemplo.com" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -142,10 +135,7 @@ export function EditSellerModal({ isOpen, onClose, onSuccess, seller }: EditSell
                   <FormItem>
                     <FormLabel>Teléfono</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} placeholder="+54 9 11 1234-5678" maxLength={20} className="pl-9" />
-                      </div>
+                      <Input {...field} placeholder="+54 9 11 1234-5678" maxLength={20} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -159,10 +149,7 @@ export function EditSellerModal({ isOpen, onClose, onSuccess, seller }: EditSell
                   <FormItem>
                     <FormLabel>DNI</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <IdCard className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} placeholder="12345678" maxLength={8} className="pl-9" />
-                      </div>
+                      <Input {...field} placeholder="12345678" maxLength={8} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -176,16 +163,12 @@ export function EditSellerModal({ isOpen, onClose, onSuccess, seller }: EditSell
                   <FormItem>
                     <FormLabel>CUIT/CUIL</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <FileText className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          value={field.value}
-                          onChange={handleCuitCuilChange(field.onChange)}
-                          placeholder="20-12345678-9"
-                          maxLength={13}
-                          className="pl-9"
-                        />
-                      </div>
+                      <Input
+                        value={field.value}
+                        onChange={handleCuitCuilChange(field.onChange)}
+                        placeholder="20-12345678-9"
+                        maxLength={13}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -199,15 +182,7 @@ export function EditSellerModal({ isOpen, onClose, onSuccess, seller }: EditSell
                   <FormItem>
                     <FormLabel>CBU / Alias</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          {...field}
-                          placeholder="0000000000000000000000 o alias"
-                          maxLength={50}
-                          className="pl-9"
-                        />
-                      </div>
+                      <Input {...field} placeholder="0000000000000000000000 o alias" maxLength={50} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

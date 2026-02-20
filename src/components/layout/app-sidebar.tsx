@@ -27,6 +27,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import type { FeatureFlags } from '@/lib/features';
 
@@ -59,6 +60,11 @@ interface AppSidebarProps {
 
 export function AppSidebar({ features }: AppSidebarProps) {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleNavClick = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   const filteredMainNav = useMemo(
     () => mainNavItems.filter((item) => item.feature === null || features[item.feature]),
@@ -98,7 +104,7 @@ export function AppSidebar({ features }: AppSidebarProps) {
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
-                      <Link href={item.href}>
+                      <Link href={item.href} onClick={handleNavClick}>
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
@@ -120,7 +126,7 @@ export function AppSidebar({ features }: AppSidebarProps) {
             return (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
-                  <Link href={item.href}>
+                  <Link href={item.href} onClick={handleNavClick}>
                     <item.icon />
                     <span>{item.title}</span>
                   </Link>

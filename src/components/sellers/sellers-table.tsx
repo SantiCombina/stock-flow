@@ -24,6 +24,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useSettings } from '@/contexts/settings-context';
+import { COLUMN_LABELS } from '@/lib/constants/table-columns';
 import type { User } from '@/payload-types';
 
 import { deleteSellerAction } from './actions';
@@ -35,6 +37,8 @@ interface SellersTableProps {
 
 export function SellersTable({ sellers, onEdit }: SellersTableProps) {
   const router = useRouter();
+  const { getVisibleColumns } = useSettings();
+  const visibleColumns = getVisibleColumns('sellers');
   const [sellerToDelete, setSellerToDelete] = useState<User | null>(null);
 
   const handlePageChange = () => {
@@ -61,20 +65,25 @@ export function SellersTable({ sellers, onEdit }: SellersTableProps) {
     setSellerToDelete(null);
   };
 
-  const columns: Column<User>[] = [
-    {
+  const allColumns: Record<string, Column<User>> = {
+    name: {
       key: 'name',
-      header: 'Nombre',
+      header: COLUMN_LABELS.name,
       cell: (seller) => <div className="font-medium">{seller.name}</div>,
     },
-    {
+    email: {
       key: 'email',
-      header: 'Email',
+      header: COLUMN_LABELS.email,
       cell: (seller) => <div className="text-muted-foreground">{seller.email}</div>,
     },
-    {
+    phone: {
+      key: 'phone',
+      header: COLUMN_LABELS.phone,
+      cell: (seller) => <div className="text-muted-foreground">{seller.phone || '-'}</div>,
+    },
+    isActive: {
       key: 'isActive',
-      header: 'Estado',
+      header: COLUMN_LABELS.isActive,
       cell: (seller) => {
         const isActive = seller.isActive ?? true;
         return (
@@ -95,9 +104,9 @@ export function SellersTable({ sellers, onEdit }: SellersTableProps) {
       },
       className: 'w-32',
     },
-    {
+    createdAt: {
       key: 'createdAt',
-      header: 'Fecha de registro',
+      header: COLUMN_LABELS.createdAt,
       cell: (seller) => {
         const date = new Date(seller.createdAt);
         return (
@@ -112,33 +121,41 @@ export function SellersTable({ sellers, onEdit }: SellersTableProps) {
       },
       className: 'w-40',
     },
-    {
-      key: 'actions',
-      header: '',
-      cell: (seller) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit?.(seller)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setSellerToDelete(seller)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-      className: 'w-16',
-    },
+  };
+
+  const actionsColumn: Column<User> = {
+    key: 'actions',
+    header: '',
+    cell: (seller) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onEdit?.(seller)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Editar
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setSellerToDelete(seller)}
+            className="text-destructive focus:text-destructive"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Eliminar
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+    className: 'w-16',
+  };
+
+  const columns: Column<User>[] = [
+    ...Object.entries(allColumns)
+      .filter(([key]) => visibleColumns.includes(key))
+      .map(([, col]) => col),
+    actionsColumn,
   ];
 
   return (
