@@ -45,9 +45,7 @@ export function SellersTable({ sellers, searchQuery = '', onEdit }: SellersTable
   const filteredSellers = useMemo(() => {
     if (!searchQuery.trim()) return sellers;
     const q = searchQuery.toLowerCase();
-    return sellers.filter(
-      (s) => s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q),
-    );
+    return sellers.filter((s) => s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q));
   }, [sellers, searchQuery]);
 
   const handlePageChange = () => {
