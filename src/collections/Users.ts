@@ -55,6 +55,20 @@ export const Users: CollectionConfig = {
       saveToJWT: true,
     },
     {
+      name: 'sellerType',
+      type: 'select',
+      defaultValue: 'fixed',
+      options: [
+        { label: 'Fijo', value: 'fixed' },
+        { label: 'Móvil', value: 'mobile' },
+      ],
+      admin: {
+        condition: (data) => data?.role === 'seller',
+        description: 'Tipo de vendedor: fijo (trabaja en el depósito) o móvil (lleva stock en su vehículo)',
+      },
+      saveToJWT: true,
+    },
+    {
       name: 'owner',
       type: 'relationship',
       relationTo: 'users',

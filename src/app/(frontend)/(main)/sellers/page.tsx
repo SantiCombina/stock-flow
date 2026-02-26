@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 
+import { getVariantsWithProducts } from '@/app/services/products';
 import { getSellers } from '@/app/services/users';
 import { SellersSection } from '@/components/sellers/sellers-section';
 import { getCurrentUser } from '@/lib/payload';
@@ -11,8 +12,11 @@ export default async function SellersPage() {
     redirect('/login');
   }
 
-  const ownerId = user.role === 'owner' ? user.id : user.id;
-  const sellers = await getSellers(ownerId);
+  const ownerId = user.id;
+  const [sellers, variantsResult] = await Promise.all([
+    getSellers(ownerId),
+    getVariantsWithProducts(ownerId, undefined, { limit: 1000 }),
+  ]);
 
-  return <SellersSection sellers={sellers} />;
+  return <SellersSection sellers={sellers} variants={variantsResult.docs} ownerId={ownerId} />;
 }

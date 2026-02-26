@@ -80,6 +80,7 @@ export interface Config {
     clients: Client;
     settings: Setting;
     'stock-movements': StockMovement;
+    'mobile-seller-inventory': MobileSellerInventory;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -100,6 +101,7 @@ export interface Config {
     clients: ClientsSelect<false> | ClientsSelect<true>;
     settings: SettingsSelect<false> | SettingsSelect<true>;
     'stock-movements': StockMovementsSelect<false> | StockMovementsSelect<true>;
+    'mobile-seller-inventory': MobileSellerInventorySelect<false> | MobileSellerInventorySelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -144,6 +146,10 @@ export interface User {
   id: number;
   name: string;
   role: 'admin' | 'owner' | 'seller';
+  /**
+   * Tipo de vendedor: fijo (trabaja en el depósito) o móvil (lleva stock en su vehículo)
+   */
+  sellerType?: ('fixed' | 'mobile') | null;
   /**
    * El dueño al que pertenece este vendedor
    */
@@ -195,6 +201,10 @@ export interface Invitation {
   id: number;
   email: string;
   role: 'owner' | 'seller';
+  /**
+   * Tipo de vendedor invitado
+   */
+  sellerType?: ('fixed' | 'mobile') | null;
   token?: string | null;
   createdBy?: (number | null) | User;
   expiresAt?: string | null;
@@ -477,7 +487,7 @@ export interface Setting {
 export interface StockMovement {
   id: number;
   variant: number | ProductVariant;
-  type: 'entry' | 'exit' | 'adjustment';
+  type: 'entry' | 'exit' | 'adjustment' | 'dispatch_to_mobile' | 'return_from_mobile';
   /**
    * Cantidad del movimiento (positivo para entrada, negativo para salida)
    */
@@ -494,11 +504,33 @@ export interface StockMovement {
    * Descripción del motivo del movimiento
    */
   reason?: string | null;
+  /**
+   * Vendedor móvil involucrado en el movimiento
+   */
+  mobileSeller?: (number | null) | User;
   owner?: (number | null) | User;
   /**
    * Usuario que registró el movimiento
    */
   createdBy: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Stock actual de cada vendedor móvil por variante de producto
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mobile-seller-inventory".
+ */
+export interface MobileSellerInventory {
+  id: number;
+  seller: number | User;
+  variant: number | ProductVariant;
+  /**
+   * Cantidad de esta variante que lleva actualmente el vendedor móvil
+   */
+  quantity: number;
+  owner?: (number | null) | User;
   updatedAt: string;
   createdAt: string;
 }
@@ -577,6 +609,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'stock-movements';
         value: number | StockMovement;
+      } | null)
+    | ({
+        relationTo: 'mobile-seller-inventory';
+        value: number | MobileSellerInventory;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -627,6 +663,7 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   role?: T;
+  sellerType?: T;
   owner?: T;
   isActive?: T;
   phone?: T;
@@ -657,6 +694,7 @@ export interface UsersSelect<T extends boolean = true> {
 export interface InvitationsSelect<T extends boolean = true> {
   email?: T;
   role?: T;
+  sellerType?: T;
   token?: T;
   createdBy?: T;
   expiresAt?: T;
@@ -843,8 +881,21 @@ export interface StockMovementsSelect<T extends boolean = true> {
   previousStock?: T;
   newStock?: T;
   reason?: T;
+  mobileSeller?: T;
   owner?: T;
   createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mobile-seller-inventory_select".
+ */
+export interface MobileSellerInventorySelect<T extends boolean = true> {
+  seller?: T;
+  variant?: T;
+  quantity?: T;
+  owner?: T;
   updatedAt?: T;
   createdAt?: T;
 }

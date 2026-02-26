@@ -16,7 +16,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
       <head>
         <meta name="apple-mobile-web-app-title" content="Stocker" />
       </head>
-      <body>{children}</body>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

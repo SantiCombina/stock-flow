@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef, ty
 import { toast } from 'sonner';
 
 import { getSettingsAction, updateTableColumnsAction, updateItemsPerPageAction } from '@/components/settings/actions';
-import type { TableName, ItemsPerPageOption } from '@/lib/constants/table-columns';
+import { TABLE_COLUMNS, type TableName, type ItemsPerPageOption } from '@/lib/constants/table-columns';
 
 interface SettingsState {
   id: number | null;
@@ -36,7 +36,7 @@ const DEFAULT_COLUMNS = {
   sales: ['date', 'client', 'total', 'status'],
   assignments: ['date', 'seller', 'status'],
   history: ['date', 'product', 'type', 'quantity'],
-  sellers: ['name', 'email', 'isActive'],
+  sellers: ['name', 'email', 'sellerType'],
 };
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
@@ -74,15 +74,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
         if (result?.data?.success && result.data.settings) {
           const settings = result.data.settings;
+          const sanitize = (cols: string[], table: keyof typeof TABLE_COLUMNS) =>
+            cols.filter((c) => (TABLE_COLUMNS[table] as readonly string[]).includes(c));
           setState((prev) => ({
             ...prev,
             id: settings.id,
-            productsColumns: settings.productsColumns,
-            clientsColumns: settings.clientsColumns,
-            salesColumns: settings.salesColumns,
-            assignmentsColumns: settings.assignmentsColumns,
-            historyColumns: settings.historyColumns,
-            sellersColumns: settings.sellersColumns,
+            productsColumns: sanitize(settings.productsColumns, 'products'),
+            clientsColumns: sanitize(settings.clientsColumns, 'clients'),
+            salesColumns: sanitize(settings.salesColumns, 'sales'),
+            assignmentsColumns: sanitize(settings.assignmentsColumns, 'assignments'),
+            historyColumns: sanitize(settings.historyColumns, 'history'),
+            sellersColumns: sanitize(settings.sellersColumns, 'sellers'),
             itemsPerPage: settings.itemsPerPage,
             isLoading: false,
           }));

@@ -7,6 +7,7 @@ import {
   History,
   LayoutDashboard,
   Package,
+  PackageSearch,
   Settings,
   ShoppingCart,
   Users,
@@ -15,6 +16,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
+import { useUserOptional } from '@/components/providers/user-provider';
 import {
   Sidebar,
   SidebarContent,
@@ -40,6 +42,10 @@ interface NavItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   feature: FeatureKey;
+  /** If set, only show to users with this role */
+  roleOnly?: 'admin' | 'owner' | 'seller';
+  /** If true, only show to mobile sellers */
+  mobileSellerOnly?: boolean;
 }
 
 const mainNavItems: NavItem[] = [
@@ -50,6 +56,13 @@ const mainNavItems: NavItem[] = [
   { title: 'Historial', href: '/history', icon: History, feature: 'history' },
   { title: 'Ventas', href: '/sales', icon: ShoppingCart, feature: 'sales' },
   { title: 'Estadísticas', href: '/statistics', icon: BarChart3, feature: 'statistics' },
+  {
+    title: 'Mi Inventario',
+    href: '/mobile-inventory',
+    icon: PackageSearch,
+    feature: null,
+    mobileSellerOnly: true,
+  },
 ];
 
 const footerNavItems: NavItem[] = [{ title: 'Configuración', href: '/settings', icon: Settings, feature: 'settings' }];
@@ -61,14 +74,21 @@ interface AppSidebarProps {
 export function AppSidebar({ features }: AppSidebarProps) {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
+  const user = useUserOptional();
 
   const handleNavClick = () => {
     if (isMobile) setOpenMobile(false);
   };
 
   const filteredMainNav = useMemo(
-    () => mainNavItems.filter((item) => item.feature === null || features[item.feature]),
-    [features],
+    () =>
+      mainNavItems.filter((item) => {
+        if (item.feature !== null && !features[item.feature]) return false;
+        if (item.mobileSellerOnly && !(user?.role === 'seller' && user?.sellerType === 'mobile')) return false;
+        if (item.roleOnly && user?.role !== item.roleOnly) return false;
+        return true;
+      }),
+    [features, user],
   );
 
   const filteredFooterNav = useMemo(

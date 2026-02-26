@@ -22,9 +22,6 @@ export function middleware(request: NextRequest) {
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
 
   if (isPublicRoute) {
-    if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
     return NextResponse.next();
   }
 

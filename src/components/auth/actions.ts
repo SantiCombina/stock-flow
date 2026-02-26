@@ -49,6 +49,7 @@ export const registerUser = actionClient.schema(registerSchema).action(async ({ 
     email,
     password,
     role: invitation.role,
+    ...(invitation.role === 'seller' ? { sellerType: invitation.sellerType } : {}),
     ...(invitation.role === 'seller' && invitation.createdBy ? { owner: invitation.createdBy } : {}),
   });
 

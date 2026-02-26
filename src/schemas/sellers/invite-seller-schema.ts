@@ -22,6 +22,9 @@ export const inviteSellerSchema = z.object({
     .email({
       message: 'Por favor ingresa una dirección de email válida.',
     }),
+  sellerType: z.enum(['fixed', 'mobile'], {
+    required_error: 'El tipo de vendedor es requerido.',
+  }),
 });
 
 export type InviteSellerValues = z.infer<typeof inviteSellerSchema>;

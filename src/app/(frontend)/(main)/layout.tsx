@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+
 import { AppLayout } from '@/components/layout/app-layout';
 import { UserProvider } from '@/components/providers/user-provider';
 import { SettingsProvider } from '@/contexts/settings-context';
@@ -8,7 +10,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   const user = await getCurrentUser();
 
   if (!user) {
-    return null;
+    redirect('/login');
   }
 
   const features = getFeatureFlags();
@@ -20,6 +22,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         name: user.name,
         email: user.email,
         role: user.role,
+        sellerType: user.sellerType as 'fixed' | 'mobile' | null | undefined,
       }}
     >
       <SettingsProvider>

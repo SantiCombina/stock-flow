@@ -98,6 +98,19 @@ export const Invitations: CollectionConfig = {
       ],
     },
     {
+      name: 'sellerType',
+      type: 'select',
+      defaultValue: 'fixed',
+      options: [
+        { label: 'Fijo', value: 'fixed' },
+        { label: 'Móvil', value: 'mobile' },
+      ],
+      admin: {
+        condition: (data) => data?.role === 'seller',
+        description: 'Tipo de vendedor invitado',
+      },
+    },
+    {
       name: 'token',
       type: 'text',
       unique: true,

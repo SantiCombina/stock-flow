@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, MoreVertical, Pencil, Trash2, XCircle } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useSettings } from '@/contexts/settings-context';
@@ -34,9 +35,11 @@ interface SellersTableProps {
   sellers: User[];
   searchQuery?: string;
   onEdit?: (seller: User) => void;
+  onDispatch?: (seller: User) => void;
+  onReturn?: (seller: User) => void;
 }
 
-export function SellersTable({ sellers, searchQuery = '', onEdit }: SellersTableProps) {
+export function SellersTable({ sellers, searchQuery = '', onEdit, onDispatch, onReturn }: SellersTableProps) {
   const router = useRouter();
   const { getVisibleColumns } = useSettings();
   const visibleColumns = getVisibleColumns('sellers');
@@ -88,28 +91,18 @@ export function SellersTable({ sellers, searchQuery = '', onEdit }: SellersTable
       header: COLUMN_LABELS.phone,
       cell: (seller) => <div className="text-muted-foreground">{seller.phone || '-'}</div>,
     },
-    isActive: {
-      key: 'isActive',
-      header: COLUMN_LABELS.isActive,
+    sellerType: {
+      key: 'sellerType',
+      header: 'Tipo',
       cell: (seller) => {
-        const isActive = seller.isActive ?? true;
+        const isMobile = seller.sellerType === 'mobile';
         return (
-          <Badge variant={isActive ? 'default' : 'secondary'} className="gap-1">
-            {isActive ? (
-              <>
-                <CheckCircle2 className="h-3 w-3" />
-                Activo
-              </>
-            ) : (
-              <>
-                <XCircle className="h-3 w-3" />
-                Inactivo
-              </>
-            )}
+          <Badge variant={isMobile ? 'outline' : 'secondary'} className="gap-1">
+            {isMobile ? 'Móvil' : 'Fijo'}
           </Badge>
         );
       },
-      className: 'w-32',
+      className: 'w-24',
     },
     createdAt: {
       key: 'createdAt',
@@ -145,6 +138,20 @@ export function SellersTable({ sellers, searchQuery = '', onEdit }: SellersTable
             <Pencil className="mr-2 h-4 w-4" />
             Editar
           </DropdownMenuItem>
+          {seller.sellerType === 'mobile' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onDispatch?.(seller)}>
+                <ArrowDownToLine className="mr-2 h-4 w-4" />
+                Despachar stock
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onReturn?.(seller)}>
+                <ArrowUpFromLine className="mr-2 h-4 w-4" />
+                Registrar devolución
+              </DropdownMenuItem>
+            </>
+          )}
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => setSellerToDelete(seller)}
             className="text-destructive focus:text-destructive"
@@ -158,7 +165,22 @@ export function SellersTable({ sellers, searchQuery = '', onEdit }: SellersTable
     className: 'w-16',
   };
 
+  const statusDotColumn: Column<User> = {
+    key: 'status',
+    header: '',
+    cell: (seller) => {
+      const isActive = seller.isActive ?? true;
+      return (
+        <div className="flex justify-center">
+          <div className={`h-2 w-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
+        </div>
+      );
+    },
+    className: 'w-6 pr-0',
+  };
+
   const columns: Column<User>[] = [
+    statusDotColumn,
     ...Object.entries(allColumns)
       .filter(([key]) => visibleColumns.includes(key))
       .map(([, col]) => col),

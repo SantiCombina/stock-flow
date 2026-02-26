@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { inviteSellerSchema, type InviteSellerValues } from '@/schemas/sellers/invite-seller-schema';
 
 import { inviteSellerAction } from './actions';
@@ -30,6 +31,7 @@ export function InviteSellerModal({ isOpen, onClose, onSuccess }: InviteSellerMo
     defaultValues: {
       name: '',
       email: '',
+      sellerType: 'fixed',
     },
   });
 
@@ -108,6 +110,28 @@ export function InviteSellerModal({ isOpen, onClose, onSuccess }: InviteSellerMo
                     <FormControl>
                       <Input {...field} type="email" placeholder="vendedor@ejemplo.com" />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sellerType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de vendedor</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="fixed">Fijo</SelectItem>
+                        <SelectItem value="mobile">Móvil</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

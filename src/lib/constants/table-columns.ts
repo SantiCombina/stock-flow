@@ -1,10 +1,10 @@
 export const TABLE_COLUMNS = {
-  products: ['name', 'code', 'brand', 'category', 'quality', 'presentation', 'stock', 'price', 'isActive'],
+  products: ['name', 'code', 'brand', 'category', 'quality', 'presentation', 'stock', 'price'],
   clients: ['name', 'cuit', 'phone', 'email', 'address'],
   sales: ['date', 'client', 'total', 'paymentMethod', 'status', 'items'],
   assignments: ['date', 'seller', 'status', 'items', 'notes'],
   history: ['date', 'product', 'type', 'quantity', 'reason', 'reference'],
-  sellers: ['name', 'email', 'phone', 'isActive', 'createdAt'],
+  sellers: ['name', 'email', 'phone', 'sellerType', 'createdAt'],
 } as const;
 
 export type TableName = keyof typeof TABLE_COLUMNS;
@@ -17,7 +17,7 @@ export const DEFAULT_COLUMNS: Record<TableName, string[]> = {
   sales: ['date', 'client', 'total', 'status'],
   assignments: ['date', 'seller', 'status'],
   history: ['date', 'product', 'type', 'quantity'],
-  sellers: ['name', 'email', 'isActive'],
+  sellers: ['name', 'email', 'sellerType'],
 };
 
 export const MINIMUM_COLUMNS: Record<TableName, string[]> = {
@@ -26,7 +26,7 @@ export const MINIMUM_COLUMNS: Record<TableName, string[]> = {
   sales: ['date', 'client', 'total'],
   assignments: ['date', 'seller', 'status'],
   history: ['date', 'product', 'type', 'quantity'],
-  sellers: ['name', 'email', 'isActive'],
+  sellers: ['name', 'email', 'sellerType'],
 };
 
 export const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
@@ -61,6 +61,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   reason: 'Razón',
   reference: 'Referencia',
   createdAt: 'Fecha de creación',
+  sellerType: 'Tipo',
 };
 
 export const TABLE_LABELS: Record<TableName, string> = {

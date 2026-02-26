@@ -307,18 +307,6 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({
       },
       className: 'text-right',
     },
-    isActive: {
-      key: 'isActive',
-      header: COLUMN_LABELS.isActive,
-      cell: (variant) => {
-        const product = variant.product;
-        return (
-          <span className="inline-block px-2.5 py-1 rounded-md bg-muted font-medium text-sm">
-            {product.isActive ? 'Activo' : 'Inactivo'}
-          </span>
-        );
-      },
-    },
   };
 
   const actionsColumn: Column<PopulatedProductVariant> = {
@@ -364,7 +352,22 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({
     className: 'w-16',
   };
 
+  const statusDotColumn: Column<PopulatedProductVariant> = {
+    key: 'status',
+    header: '',
+    cell: (variant) => {
+      const isActive = variant.product.isActive ?? true;
+      return (
+        <div className="flex justify-center">
+          <div className={`h-2 w-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
+        </div>
+      );
+    },
+    className: 'w-6 pr-0',
+  };
+
   const columns: Column<PopulatedProductVariant>[] = [
+    statusDotColumn,
     allColumns.image,
     ...Object.entries(allColumns)
       .filter(([key]) => key !== 'image' && shouldShowColumn(key))

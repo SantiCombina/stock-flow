@@ -8,6 +8,7 @@ interface CreateUserData {
   email: string;
   password: string;
   role: 'admin' | 'owner' | 'seller';
+  sellerType?: 'fixed' | 'mobile';
   owner?: number;
 }
 
@@ -38,6 +39,7 @@ export async function createUser(data: CreateUserData): Promise<CreateUserResult
         email: data.email,
         password: data.password,
         role: data.role,
+        ...(data.sellerType ? { sellerType: data.sellerType } : {}),
         ...(data.owner ? { owner: data.owner } : {}),
       },
     });

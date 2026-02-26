@@ -18,10 +18,10 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@payloadcms/db-postgres": "3.75.0",
-    "@payloadcms/email-nodemailer": "^3.75.0",
+    "@payloadcms/email-nodemailer": "3.75.0",
     "@payloadcms/next": "3.75.0",
     "@payloadcms/richtext-lexical": "3.75.0",
-    "@payloadcms/storage-uploadthing": "^3.75.0",
+    "@payloadcms/storage-uploadthing": "3.75.0",
     "@payloadcms/ui": "3.75.0",
     "@react-email/components": "^1.0.8",
     "@react-email/render": "^2.0.4",

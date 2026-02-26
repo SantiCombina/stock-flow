@@ -4,6 +4,7 @@ import { Plus, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import type { PopulatedProductVariant } from '@/app/services/products';
 import { PageHeader } from '@/components/layout/page-header';
 import { useUserOptional } from '@/components/providers/user-provider';
 import { Button } from '@/components/ui/button';
@@ -11,15 +12,19 @@ import { ColumnVisibilityDropdown } from '@/components/ui/column-visibility-drop
 import { Input } from '@/components/ui/input';
 import type { User } from '@/payload-types';
 
+import { DispatchStockModal } from './dispatch-stock-modal';
 import { EditSellerModal } from './edit-seller-modal';
 import { InviteSellerModal } from './invite-seller-modal';
+import { ReturnStockModal } from './return-stock-modal';
 import { SellersTable } from './sellers-table';
 
 interface SellersSectionProps {
   sellers: User[];
+  variants: PopulatedProductVariant[];
+  ownerId: number;
 }
 
-export function SellersSection({ sellers }: SellersSectionProps) {
+export function SellersSection({ sellers, variants, ownerId }: SellersSectionProps) {
   const router = useRouter();
   const user = useUserOptional();
   const canInviteSeller = user?.role === 'owner' || user?.role === 'admin';
@@ -27,28 +32,24 @@ export function SellersSection({ sellers }: SellersSectionProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [sellerToEdit, setSellerToEdit] = useState<User | null>(null);
-
-  const handleOpenInviteModal = () => {
-    setIsInviteModalOpen(true);
-  };
-
-  const handleOpenEditModal = (seller: User) => {
-    setSellerToEdit(seller);
-    setIsEditModalOpen(true);
-  };
+  const [sellerForDispatch, setSellerForDispatch] = useState<User | null>(null);
+  const [sellerForReturn, setSellerForReturn] = useState<User | null>(null);
 
   const handleSuccess = () => {
     router.refresh();
   };
 
-  const handleCloseInviteModal = () => {
-    setIsInviteModalOpen(false);
+  const handleOpenDispatch = (seller: User) => {
+    setSellerForDispatch(seller);
+    setIsDispatchModalOpen(true);
   };
 
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setSellerToEdit(null);
+  const handleOpenReturn = (seller: User) => {
+    setSellerForReturn(seller);
+    setIsReturnModalOpen(true);
   };
 
   return (
@@ -59,7 +60,7 @@ export function SellersSection({ sellers }: SellersSectionProps) {
         actions={
           canInviteSeller ? (
             <Button
-              onClick={handleOpenInviteModal}
+              onClick={() => setIsInviteModalOpen(true)}
               size="sm"
               className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-3 gap-1"
             >
@@ -84,15 +85,51 @@ export function SellersSection({ sellers }: SellersSectionProps) {
           </div>
           <ColumnVisibilityDropdown tableName="sellers" />
         </div>
-        <SellersTable sellers={sellers} searchQuery={searchQuery} onEdit={handleOpenEditModal} />
+        <SellersTable
+          sellers={sellers}
+          searchQuery={searchQuery}
+          onEdit={(seller) => {
+            setSellerToEdit(seller);
+            setIsEditModalOpen(true);
+          }}
+          onDispatch={handleOpenDispatch}
+          onReturn={handleOpenReturn}
+        />
       </main>
 
-      <InviteSellerModal isOpen={isInviteModalOpen} onClose={handleCloseInviteModal} onSuccess={handleSuccess} />
+      <InviteSellerModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onSuccess={handleSuccess}
+      />
       <EditSellerModal
         isOpen={isEditModalOpen}
-        onClose={handleCloseEditModal}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSellerToEdit(null);
+        }}
         onSuccess={handleSuccess}
         seller={sellerToEdit}
+      />
+      <DispatchStockModal
+        isOpen={isDispatchModalOpen}
+        onClose={() => {
+          setIsDispatchModalOpen(false);
+          setSellerForDispatch(null);
+        }}
+        onSuccess={handleSuccess}
+        seller={sellerForDispatch}
+        variants={variants}
+      />
+      <ReturnStockModal
+        isOpen={isReturnModalOpen}
+        onClose={() => {
+          setIsReturnModalOpen(false);
+          setSellerForReturn(null);
+        }}
+        onSuccess={handleSuccess}
+        seller={sellerForReturn}
+        ownerId={ownerId}
       />
     </div>
   );

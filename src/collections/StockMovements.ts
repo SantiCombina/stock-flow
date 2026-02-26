@@ -49,6 +49,14 @@ export const StockMovements: CollectionConfig = {
           label: 'Ajuste de inventario',
           value: 'adjustment',
         },
+        {
+          label: 'Despacho a vendedor móvil',
+          value: 'dispatch_to_mobile',
+        },
+        {
+          label: 'Devolución de vendedor móvil',
+          value: 'return_from_mobile',
+        },
       ],
     },
     {
@@ -86,6 +94,16 @@ export const StockMovements: CollectionConfig = {
       label: 'Motivo/Observaciones',
       admin: {
         description: 'Descripción del motivo del movimiento',
+      },
+    },
+    {
+      name: 'mobileSeller',
+      type: 'relationship',
+      relationTo: 'users',
+      label: 'Vendedor móvil',
+      admin: {
+        condition: (data) => data?.type === 'dispatch_to_mobile' || data?.type === 'return_from_mobile',
+        description: 'Vendedor móvil involucrado en el movimiento',
       },
     },
     {

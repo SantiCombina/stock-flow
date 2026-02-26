@@ -13,6 +13,7 @@ import { Categories } from './collections/Categories';
 import { Clients } from './collections/Clients';
 import { Invitations } from './collections/Invitations';
 import { Media } from './collections/Media';
+import { MobileSellerInventory } from './collections/MobileSellerInventory';
 import { Presentations } from './collections/Presentations';
 import { ProductCustomFields } from './collections/ProductCustomFields';
 import { Products } from './collections/Products';
@@ -46,6 +47,7 @@ export default buildConfig({
     Clients,
     Settings,
     StockMovements,
+    MobileSellerInventory,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
