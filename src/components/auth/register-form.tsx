@@ -18,10 +18,9 @@ interface RegisterFormProps {
   token?: string;
   email?: string;
   role?: string;
-  sellerType?: 'fixed' | 'mobile';
 }
 
-export function RegisterForm({ token, email, role, sellerType }: RegisterFormProps) {
+export function RegisterForm({ token, email, role }: RegisterFormProps) {
   const router = useRouter();
 
   const { executeAsync, status } = useAction(registerUser);
@@ -74,7 +73,7 @@ export function RegisterForm({ token, email, role, sellerType }: RegisterFormPro
         <CardDescription>
           Registrándose como{' '}
           <span className="font-medium capitalize">
-            {role === 'owner' ? 'Dueño' : sellerType === 'mobile' ? 'Vendedor Móvil' : 'Vendedor'}
+            {role === 'owner' ? 'Dueño' : 'Vendedor'}
           </span>
           <br />
           <span className="text-foreground">{email}</span>

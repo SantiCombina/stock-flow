@@ -49,7 +49,6 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         email={invitation.email}
         token={token}
         role={invitation.role}
-        sellerType={invitation.sellerType as 'fixed' | 'mobile' | undefined}
       />
     </div>
   );

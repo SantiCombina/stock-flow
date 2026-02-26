@@ -36,7 +36,7 @@ const DEFAULT_COLUMNS = {
   sales: ['date', 'client', 'total', 'status'],
   assignments: ['date', 'seller', 'status'],
   history: ['date', 'product', 'type', 'quantity'],
-  sellers: ['name', 'email', 'sellerType'],
+  sellers: ['name', 'email'],
 };
 
 export function SettingsProvider({ children }: { children: ReactNode }) {

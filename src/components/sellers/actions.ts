@@ -18,7 +18,7 @@ export const inviteSellerAction = actionClient.schema(inviteSellerSchema).action
 
   const ownerId = user.id;
 
-  await createInvitation(parsedInput.email, ownerId, parsedInput.sellerType);
+  await createInvitation(parsedInput.email, ownerId);
 
   return { success: true };
 });

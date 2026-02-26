@@ -147,10 +147,6 @@ export interface User {
   name: string;
   role: 'admin' | 'owner' | 'seller';
   /**
-   * Tipo de vendedor: fijo (trabaja en el depósito) o móvil (lleva stock en su vehículo)
-   */
-  sellerType?: ('fixed' | 'mobile') | null;
-  /**
    * El dueño al que pertenece este vendedor
    */
   owner?: (number | null) | User;
@@ -201,10 +197,6 @@ export interface Invitation {
   id: number;
   email: string;
   role: 'owner' | 'seller';
-  /**
-   * Tipo de vendedor invitado
-   */
-  sellerType?: ('fixed' | 'mobile') | null;
   token?: string | null;
   createdBy?: (number | null) | User;
   expiresAt?: string | null;
@@ -663,7 +655,6 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   role?: T;
-  sellerType?: T;
   owner?: T;
   isActive?: T;
   phone?: T;
@@ -694,7 +685,6 @@ export interface UsersSelect<T extends boolean = true> {
 export interface InvitationsSelect<T extends boolean = true> {
   email?: T;
   role?: T;
-  sellerType?: T;
   token?: T;
   createdBy?: T;
   expiresAt?: T;

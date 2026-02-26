@@ -11,7 +11,7 @@ export default async function MobileInventoryPage() {
     redirect('/login');
   }
 
-  if (user.role !== 'seller' || user.sellerType !== 'mobile') {
+  if (user.role !== 'seller') {
     redirect('/');
   }
 

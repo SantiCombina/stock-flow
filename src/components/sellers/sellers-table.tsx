@@ -15,7 +15,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/ui/data-table';
 import {
@@ -91,19 +90,6 @@ export function SellersTable({ sellers, searchQuery = '', onEdit, onDispatch, on
       header: COLUMN_LABELS.phone,
       cell: (seller) => <div className="text-muted-foreground">{seller.phone || '-'}</div>,
     },
-    sellerType: {
-      key: 'sellerType',
-      header: 'Tipo',
-      cell: (seller) => {
-        const isMobile = seller.sellerType === 'mobile';
-        return (
-          <Badge variant={isMobile ? 'outline' : 'secondary'} className="gap-1">
-            {isMobile ? 'Móvil' : 'Fijo'}
-          </Badge>
-        );
-      },
-      className: 'w-24',
-    },
     createdAt: {
       key: 'createdAt',
       header: COLUMN_LABELS.createdAt,
@@ -138,19 +124,17 @@ export function SellersTable({ sellers, searchQuery = '', onEdit, onDispatch, on
             <Pencil className="mr-2 h-4 w-4" />
             Editar
           </DropdownMenuItem>
-          {seller.sellerType === 'mobile' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onDispatch?.(seller)}>
-                <ArrowDownToLine className="mr-2 h-4 w-4" />
-                Despachar stock
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onReturn?.(seller)}>
-                <ArrowUpFromLine className="mr-2 h-4 w-4" />
-                Registrar devolución
-              </DropdownMenuItem>
-            </>
-          )}
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onDispatch?.(seller)}>
+              <ArrowDownToLine className="mr-2 h-4 w-4" />
+              Despachar stock
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onReturn?.(seller)}>
+              <ArrowUpFromLine className="mr-2 h-4 w-4" />
+              Registrar devolución
+            </DropdownMenuItem>
+          </>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => setSellerToDelete(seller)}

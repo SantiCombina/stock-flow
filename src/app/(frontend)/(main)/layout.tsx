@@ -22,7 +22,6 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         name: user.name,
         email: user.email,
         role: user.role,
-        sellerType: user.sellerType as 'fixed' | 'mobile' | null | undefined,
       }}
     >
       <SettingsProvider>

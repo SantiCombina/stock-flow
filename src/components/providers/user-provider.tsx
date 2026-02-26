@@ -7,7 +7,6 @@ interface UserContextValue {
   name: string;
   email: string;
   role: 'admin' | 'owner' | 'seller';
-  sellerType?: 'fixed' | 'mobile' | null;
 }
 
 const UserContext = createContext<UserContextValue | null>(null);

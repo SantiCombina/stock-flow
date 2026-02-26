@@ -45,26 +45,18 @@ interface NavItem {
   feature: FeatureKey;
   /** If set, only show to users with this role */
   roleOnly?: 'admin' | 'owner' | 'seller';
-  /** If true, only show to mobile sellers */
-  mobileSellerOnly?: boolean;
 }
 
 const mainNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/', icon: LayoutDashboard, feature: null },
   { title: 'Productos', href: '/products', icon: Package, feature: 'products' },
-  { title: 'Vendedores', href: '/sellers', icon: Users, feature: 'sellers' },
-  { title: 'Asignaciones', href: '/assignments', icon: ClipboardList, feature: 'assignments' },
-  { title: 'Historial', href: '/history', icon: History, feature: 'history' },
+  { title: 'Vendedores', href: '/sellers', icon: Users, feature: 'sellers', roleOnly: 'owner' },
+  { title: 'Asignaciones', href: '/assignments', icon: ClipboardList, feature: 'assignments', roleOnly: 'owner' },
+  { title: 'Historial', href: '/history', icon: History, feature: 'history', roleOnly: 'owner' },
   { title: 'Ventas', href: '/sales', icon: ShoppingCart, feature: 'sales' },
   { title: 'Clientes', href: '/clients', icon: Contact, feature: 'clients' },
-  { title: 'Estadísticas', href: '/statistics', icon: BarChart3, feature: 'statistics' },
-  {
-    title: 'Mi Inventario',
-    href: '/mobile-inventory',
-    icon: PackageSearch,
-    feature: null,
-    mobileSellerOnly: true,
-  },
+  { title: 'Estadísticas', href: '/statistics', icon: BarChart3, feature: 'statistics', roleOnly: 'owner' },
+  { title: 'Mi Inventario', href: '/mobile-inventory', icon: PackageSearch, feature: null, roleOnly: 'seller' },
 ];
 
 const footerNavItems: NavItem[] = [{ title: 'Configuración', href: '/settings', icon: Settings, feature: 'settings' }];
@@ -86,7 +78,6 @@ export function AppSidebar({ features }: AppSidebarProps) {
     () =>
       mainNavItems.filter((item) => {
         if (item.feature !== null && !features[item.feature]) return false;
-        if (item.mobileSellerOnly && !(user?.role === 'seller' && user?.sellerType === 'mobile')) return false;
         if (item.roleOnly && user?.role !== item.roleOnly) return false;
         return true;
       }),

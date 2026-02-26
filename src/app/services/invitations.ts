@@ -9,17 +9,12 @@ interface ValidateInvitationResult {
     id: number;
     email: string;
     role: 'owner' | 'seller';
-    sellerType: 'fixed' | 'mobile';
     createdBy: number | null;
   };
   error?: string;
 }
 
-export async function createInvitation(
-  email: string,
-  ownerId: number,
-  sellerType: 'fixed' | 'mobile' = 'fixed',
-): Promise<Invitation> {
+export async function createInvitation(email: string, ownerId: number): Promise<Invitation> {
   const payload = await getPayloadClient();
 
   const invitation = await payload.create({
@@ -27,7 +22,6 @@ export async function createInvitation(
     data: {
       email,
       role: 'seller',
-      sellerType,
       createdBy: ownerId,
     },
     overrideAccess: true,
@@ -63,7 +57,6 @@ export async function validateInvitation(token: string): Promise<ValidateInvitat
       id: invitation.id,
       email: invitation.email,
       role: invitation.role as 'owner' | 'seller',
-      sellerType: (invitation.sellerType as 'fixed' | 'mobile') ?? 'fixed',
       createdBy: typeof invitation.createdBy === 'number' ? invitation.createdBy : (invitation.createdBy?.id ?? null),
     },
   };
