@@ -1,7 +1,6 @@
 'use client';
 
 import { Plus, Search } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -17,7 +16,6 @@ import { ProductModal } from './product-modal-new/index';
 import { ProductsTable, type ProductsTableRef } from './products-table';
 
 export function ProductsSection() {
-  const router = useRouter();
   const user = useUserOptional();
   const canCreateProduct = user?.role === 'owner' || user?.role === 'admin';
   const tableRef = useRef<ProductsTableRef>(null);
@@ -83,10 +81,9 @@ export function ProductsSection() {
     }
   };
 
-  const handleSuccess = useCallback(async () => {
-    await tableRef.current?.refresh();
-    router.refresh();
-  }, [router]);
+  const handleSuccess = useCallback(() => {
+    void tableRef.current?.silentRefresh();
+  }, []);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);

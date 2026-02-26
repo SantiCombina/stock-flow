@@ -165,9 +165,22 @@ export async function deleteProduct(id: number): Promise<void> {
     collection: 'product-variants',
     where: { product: { equals: id } },
     overrideAccess: true,
+    limit: 1000,
   });
 
   for (const variant of variants.docs) {
+    await payload.delete({
+      collection: 'stock-movements',
+      where: { variant: { equals: variant.id } },
+      overrideAccess: true,
+    });
+
+    await payload.delete({
+      collection: 'mobile-seller-inventory',
+      where: { variant: { equals: variant.id } },
+      overrideAccess: true,
+    });
+
     await payload.delete({
       collection: 'product-variants',
       id: variant.id,

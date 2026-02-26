@@ -22,6 +22,7 @@ import {
 } from '@/app/services/products';
 import { getPayloadClient } from '@/lib/payload';
 import { getCurrentUser } from '@/lib/payload';
+import { resolveId } from '@/lib/payload-utils';
 import { actionClient } from '@/lib/safe-action';
 import {
   productFiltersSchema,
@@ -78,11 +79,16 @@ export const getVariantsAction = actionClient
       throw new Error('No autenticado');
     }
 
-    if (user.role !== 'admin' && user.role !== 'owner') {
+    let ownerId: number;
+    if (user.role === 'admin' || user.role === 'owner') {
+      ownerId = user.id;
+    } else if (user.role === 'seller') {
+      const resolved = resolveId(user.owner);
+      if (!resolved) throw new Error('El vendedor no tiene un dueño asignado');
+      ownerId = resolved;
+    } else {
       throw new Error('No autorizado');
     }
-
-    const ownerId = user.role === 'admin' ? user.id : user.id;
 
     const filters: VariantFilters = {
       search: parsedInput.filters?.search,
@@ -115,7 +121,8 @@ export const getProductByIdAction = actionClient
       throw new Error('Producto no encontrado');
     }
 
-    const ownerId = user.role === 'admin' ? product.owner : user.role === 'owner' ? user.id : user.owner;
+    const ownerId =
+      user.role === 'admin' ? resolveId(product.owner) : user.role === 'owner' ? user.id : resolveId(user.owner);
     if (typeof product.owner === 'number' && product.owner !== ownerId) {
       throw new Error('No autorizado');
     }

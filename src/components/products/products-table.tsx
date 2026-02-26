@@ -32,7 +32,11 @@ import type { Product } from '@/payload-types';
 import { getVariantsAction, deleteProductAction } from './actions';
 import { StockMovementModal } from './stock-movement-modal';
 
-const variantsCache: { data: PopulatedProductVariant[]; timestamp: number } = { data: [], timestamp: 0 };
+const variantsCache: { data: PopulatedProductVariant[]; timestamp: number; isLoaded: boolean } = {
+  data: [],
+  timestamp: 0,
+  isLoaded: false,
+};
 const STALE_TIME = 2 * 60 * 1000;
 
 interface ProductsTableProps {
@@ -42,6 +46,7 @@ interface ProductsTableProps {
 
 export interface ProductsTableRef {
   refresh: () => Promise<void>;
+  silentRefresh: () => Promise<void>;
 }
 
 export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({ searchQuery = '', onEdit }, ref) => {
@@ -49,7 +54,7 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({
   const { getItemsPerPage, getVisibleColumns, isLoading: isSettingsLoading, updateItemsPerPage } = useSettings();
 
   const [allVariants, setAllVariants] = useState<PopulatedProductVariant[]>(variantsCache.data);
-  const [isLoading, setIsLoading] = useState(variantsCache.data.length === 0);
+  const [isLoading, setIsLoading] = useState(!variantsCache.isLoaded);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [visibleColumns, setVisibleColumns] = useState<string[]>([]);
@@ -105,12 +110,12 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({
       if (result?.data?.success) {
         variantsCache.data = result.data.docs;
         variantsCache.timestamp = Date.now();
+        variantsCache.isLoaded = true;
         setAllVariants(result.data.docs);
       } else {
         if (!silent) toast.error('Error al cargar productos');
       }
-    } catch (error) {
-      console.error('Exception loading variants:', error);
+    } catch {
       if (!silent) toast.error('Error al cargar productos');
     } finally {
       if (!silent) setIsLoading(false);
@@ -118,12 +123,10 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({
   }, []);
 
   useEffect(() => {
-    if (variantsCache.data.length > 0) {
-      if (Date.now() - variantsCache.timestamp > STALE_TIME) {
-        void loadVariants(true);
-      }
-    } else {
+    if (!variantsCache.isLoaded) {
       void loadVariants(false);
+    } else if (Date.now() - variantsCache.timestamp > STALE_TIME) {
+      void loadVariants(true);
     }
   }, [loadVariants]);
 
@@ -136,25 +139,30 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({
 
     const productId = productToDelete.id;
 
-    try {
-      const result = await deleteProductAction({ id: productId });
+    // Optimistic: capture current state for potential rollback
+    const previousVariants = allVariants;
+    const nextVariants = allVariants.filter((v) => v.product.id !== productId);
 
-      if (result?.serverError) {
-        toast.error(result.serverError);
-        return;
-      }
+    // Remove from UI and close dialog immediately
+    variantsCache.data = nextVariants;
+    setAllVariants(nextVariants);
+    setProductToDelete(null);
 
-      if (result?.data?.success) {
-        toast.success('Producto eliminado correctamente');
-        removeVariantsByProduct(productId);
-      } else {
-        toast.error('Error al eliminar producto');
-      }
-    } catch (error) {
-      console.error('Exception deleting product:', error);
+    const result = await deleteProductAction({ id: productId });
+
+    if (result?.serverError) {
+      variantsCache.data = previousVariants;
+      setAllVariants(previousVariants);
+      toast.error(result.serverError);
+      return;
+    }
+
+    if (result?.data?.success) {
+      toast.success('Producto eliminado correctamente');
+    } else {
+      variantsCache.data = previousVariants;
+      setAllVariants(previousVariants);
       toast.error('Error al eliminar producto');
-    } finally {
-      setProductToDelete(null);
     }
   };
 
@@ -170,6 +178,7 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({
 
   useImperativeHandle(ref, () => ({
     refresh: () => loadVariants(false),
+    silentRefresh: () => loadVariants(true),
   }));
 
   const updateVariantStock = useCallback((variantId: number, newStock: number) => {
@@ -177,14 +186,6 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({
       const updated = prev.map((variant) => (variant.id === variantId ? { ...variant, stock: newStock } : variant));
       variantsCache.data = updated;
       return updated;
-    });
-  }, []);
-
-  const removeVariantsByProduct = useCallback((productId: number) => {
-    setAllVariants((prev) => {
-      const filtered = prev.filter((variant) => variant.product.id !== productId);
-      variantsCache.data = filtered;
-      return filtered;
     });
   }, []);
 

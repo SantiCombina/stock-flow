@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:/Users/santi/Documents/Workspace/stocker\" && npx skills add https://github.com/vercel-labs/next-skills --skill next-best-practices --agent \"Claude Code\" --yes 2>&1)",
+      "Bash(cd \"C:/Users/santi/Documents/Workspace/stocker\" && npx skills add https://github.com/vercel-labs/next-skills --skill next-best-practices --agent claude-code --yes 2>&1)",
+      "Bash(cd \"C:/Users/santi/Documents/Workspace/stocker\" && npx skills list 2>&1)",
+      "Bash(npx skills:*)"
+    ]
+  }
+}

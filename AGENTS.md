@@ -960,8 +960,3 @@ import config from '@payload-config';
 ## References
 
 - `docs/PLAN.md` - Roadmap y plan de desarrollo
-- `skills/nextjs-15/SKILL.md` - Guía de Next.js 15
-- `skills/payload/AGENTS.md` - Guía de Payload CMS
-- `skills/tailwind-4/SKILL.md` - Guía de Tailwind CSS 4
-- `skills/zod-3/SKILL.md` - Guía de Zod
-- `skills/react-19/SKILL.md` - Guía de React 19

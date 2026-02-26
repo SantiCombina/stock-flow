@@ -8,7 +8,7 @@ import { getCurrentUser } from '@/lib/payload';
 export default async function SellersPage() {
   const user = await getCurrentUser();
 
-  if (!user || (user.role !== 'owner' && user.role !== 'admin')) {
+  if (!user) {
     redirect('/login');
   }
 
