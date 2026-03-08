@@ -16,13 +16,13 @@ export default async function LoginPage() {
   if (user) redirect('/');
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-dvh">
       <div className="hidden lg:flex lg:w-[45%] flex-col justify-between bg-primary p-12 text-primary-foreground">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-foreground/20">
-            <Box className="h-5 w-5" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-foreground/20">
+            <Box className="h-7 w-7" />
           </div>
-          <span className="text-xl font-bold tracking-tight">Stocker</span>
+          <span className="text-3xl font-bold tracking-tight">Stocker</span>
         </div>
 
         <div className="space-y-8">
@@ -49,11 +49,11 @@ export default async function LoginPage() {
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-8 p-6 bg-muted/20">
-        <div className="flex items-center gap-2 lg:hidden">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
-            <Box className="h-5 w-5 text-primary-foreground" />
+        <div className="flex items-center gap-3 lg:hidden">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
+            <Box className="h-7 w-7 text-primary-foreground" />
           </div>
-          <span className="text-xl font-bold">Stocker</span>
+          <span className="text-3xl font-bold">Stocker</span>
         </div>
 
         <Suspense fallback={<div className="h-96 w-full max-w-sm animate-pulse rounded-lg bg-muted" />}>

@@ -59,7 +59,7 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
             {registered && (
               <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-700">
                 Cuenta creada exitosamente. Ingresá tus credenciales.
@@ -76,7 +76,7 @@ export function LoginForm() {
                   <FormControl>
                     <Input type="email" placeholder="email@ejemplo.com" {...field} />
                   </FormControl>
-                  <div className="-mt-1.5">
+                  <div className="-mt-1 min-h-5">
                     <FormMessage />
                   </div>
                 </FormItem>
@@ -92,7 +92,7 @@ export function LoginForm() {
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
-                  <div className="-mt-1.5">
+                  <div className="-mt-1 min-h-5">
                     <FormMessage />
                   </div>
                 </FormItem>
