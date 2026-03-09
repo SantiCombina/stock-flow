@@ -19,7 +19,9 @@
       "Bash(grep \"^pg$\")",
       "Bash(del \"c:\\\\Users\\\\santi\\\\Documents\\\\Workspace\\\\stocker\\\\src\\\\scripts\\\\add-minimum-stock.ts\")",
       "Bash(pnpm build)",
-      "Read(//c/Users/santi/.claude/projects/c--Users-santi-Documents-Workspace-stocker/memory/**)"
+      "Read(//c/Users/santi/.claude/projects/c--Users-santi-Documents-Workspace-stocker/memory/**)",
+      "Bash(find /c/Users/santi/Documents/Workspace/stocker/src/app/'\\(frontend\\)'/'\\(main\\)'/products -type f -name \"*.ts*\")",
+      "Bash(npx tsc --noEmit)"
     ],
     "additionalDirectories": [
       "c:\\Users\\santi\\.claude\\projects\\c--Users-santi-Documents-Workspace-stocker\\memory"

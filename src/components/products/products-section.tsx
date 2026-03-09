@@ -124,6 +124,7 @@ export function ProductsSection() {
           ref={tableRef}
           searchQuery={searchQuery}
           onEdit={canCreateProduct ? handleOpenEditModal : undefined}
+          showActions={canCreateProduct}
         />
       </main>
 

@@ -1,7 +1,7 @@
 'use client';
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { type ReactNode } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,6 +14,8 @@ export interface Column<T> {
   header: ReactNode;
   cell: (item: T) => ReactNode;
   className?: string;
+  sortable?: boolean;
+  sortValue?: (item: T) => string | number | null | undefined;
 }
 
 interface DataTableProps<T> {
@@ -22,12 +24,8 @@ interface DataTableProps<T> {
   keyExtractor: (item: T) => string | number;
   isLoading?: boolean;
   emptyMessage?: string;
-  page: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  itemsPerPage: number;
+  defaultItemsPerPage?: number;
   onItemsPerPageChange?: (itemsPerPage: number) => void;
-  totalItems: number;
 }
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
@@ -39,13 +37,59 @@ export function DataTable<T>({
   keyExtractor,
   isLoading = false,
   emptyMessage = 'No hay datos',
-  page,
-  totalPages,
-  onPageChange,
-  itemsPerPage,
+  defaultItemsPerPage = 10,
   onItemsPerPageChange,
-  totalItems,
 }: DataTableProps<T>) {
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [prevData, setPrevData] = useState(data);
+
+  if (prevData !== data) {
+    setPrevData(data);
+    setPage(1);
+  }
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+    setPage(1);
+  };
+
+  const handleItemsPerPageChange = (n: number) => {
+    setItemsPerPage(n);
+    setPage(1);
+    onItemsPerPageChange?.(n);
+  };
+
+  const sortedData = useMemo(() => {
+    if (!sortKey) return data;
+    const col = columns.find((c) => c.key === sortKey);
+    if (!col?.sortValue) return data;
+    return [...data].sort((a, b) => {
+      const va = col.sortValue!(a) ?? '';
+      const vb = col.sortValue!(b) ?? '';
+      if (typeof va === 'number' && typeof vb === 'number') {
+        return sortDir === 'asc' ? va - vb : vb - va;
+      }
+      const sa = String(va).toLowerCase();
+      const sb = String(vb).toLowerCase();
+      if (sa < sb) return sortDir === 'asc' ? -1 : 1;
+      if (sa > sb) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [data, sortKey, sortDir, columns]);
+
+  const totalItems = sortedData.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const safePage = Math.min(page, totalPages);
+  const pageData = sortedData.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+
   return (
     <div className="space-y-3">
       <div className="rounded-md border">
@@ -54,7 +98,29 @@ export function DataTable<T>({
             <TableRow>
               {columns.map((column) => (
                 <TableHead key={column.key} className={column.className}>
-                  {column.header}
+                  {column.sortable ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSort(column.key)}
+                      className={cn(
+                        'flex items-center gap-1 hover:text-foreground transition-colors',
+                        column.className?.includes('text-right') && 'w-full justify-end',
+                      )}
+                    >
+                      {column.header}
+                      {sortKey === column.key ? (
+                        sortDir === 'asc' ? (
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        ) : (
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />
+                      )}
+                    </button>
+                  ) : (
+                    column.header
+                  )}
                 </TableHead>
               ))}
             </TableRow>
@@ -70,14 +136,14 @@ export function DataTable<T>({
                   ))}
                 </TableRow>
               ))
-            ) : data.length === 0 ? (
+            ) : pageData.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="py-10 text-center text-muted-foreground">
                   {emptyMessage}
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((item) => (
+              pageData.map((item) => (
                 <TableRow key={keyExtractor(item)}>
                   {columns.map((column) => (
                     <TableCell key={column.key} className={cn(column.className)}>
@@ -96,7 +162,7 @@ export function DataTable<T>({
           {onItemsPerPageChange && (
             <>
               <span>Filas por página</span>
-              <Select value={String(itemsPerPage)} onValueChange={(v) => onItemsPerPageChange(Number(v))}>
+              <Select value={String(itemsPerPage)} onValueChange={(v) => handleItemsPerPageChange(Number(v))}>
                 <SelectTrigger className="h-8 w-17.5">
                   <SelectValue />
                 </SelectTrigger>
@@ -116,15 +182,15 @@ export function DataTable<T>({
           <span>
             {totalItems === 0
               ? '0 resultados'
-              : `${(page - 1) * itemsPerPage + 1}–${Math.min(page * itemsPerPage, totalItems)} de ${totalItems}`}
+              : `${(safePage - 1) * itemsPerPage + 1}–${Math.min(safePage * itemsPerPage, totalItems)} de ${totalItems}`}
           </span>
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
               size="sm"
               className="h-8 w-8 p-0"
-              onClick={() => onPageChange(page - 1)}
-              disabled={page <= 1 || isLoading}
+              onClick={() => setPage((p) => p - 1)}
+              disabled={safePage <= 1 || isLoading}
               aria-label="Página anterior"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -133,8 +199,8 @@ export function DataTable<T>({
               variant="outline"
               size="sm"
               className="h-8 w-8 p-0"
-              onClick={() => onPageChange(page + 1)}
-              disabled={page >= totalPages || isLoading}
+              onClick={() => setPage((p) => p + 1)}
+              disabled={safePage >= totalPages || isLoading}
               aria-label="Página siguiente"
             >
               <ChevronRight className="h-4 w-4" />

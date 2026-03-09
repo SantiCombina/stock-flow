@@ -36,7 +36,7 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
       </header>
 
       <div className="p-4 sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-row items-end justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold sm:text-2xl">{title}</h1>
             <p className="text-sm text-muted-foreground">{description}</p>

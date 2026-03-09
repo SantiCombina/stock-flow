@@ -1,7 +1,7 @@
 'use client';
 
-import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown } from 'lucide-react';
+import { Fragment, useMemo, useState } from 'react';
 
 import type { SaleRow } from '@/app/services/sales';
 import { PageHeader } from '@/components/layout/page-header';
@@ -26,6 +26,8 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
 
 const OPTIONAL_COLUMN_KEYS = ['date', 'seller', 'client', 'items', 'total', 'paymentMethod'] as const;
 
+type SortKey = 'date' | 'seller' | 'client' | 'items' | 'total' | 'paymentMethod';
+
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleString('es-AR', {
     day: '2-digit',
@@ -40,19 +42,70 @@ function formatPrice(value: number): string {
   return value.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function getSortValue(sale: SaleRow, key: SortKey): string | number {
+  switch (key) {
+    case 'date':
+      return sale.date;
+    case 'seller':
+      return sale.sellerName ?? '';
+    case 'client':
+      return sale.clientName ?? '';
+    case 'items':
+      return sale.itemCount;
+    case 'total':
+      return sale.total;
+    case 'paymentMethod':
+      return PAYMENT_METHOD_LABELS[sale.paymentMethod] ?? sale.paymentMethod;
+  }
+}
+
+function SortIcon({ column, sortKey, sortDir }: { column: SortKey; sortKey: SortKey | null; sortDir: 'asc' | 'desc' }) {
+  if (sortKey !== column) return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />;
+  return sortDir === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />;
+}
+
 export function SalesSection({ sales, showSellerColumn }: SalesSectionProps) {
   const { getVisibleColumns } = useSettings();
   const visibleColumns = getVisibleColumns('sales');
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   const toggleExpand = (id: number) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
-  const totalPages = Math.max(1, Math.ceil(sales.length / itemsPerPage));
-  const paginatedSales = sales.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+    setPage(1);
+  };
+
+  const sortedSales = useMemo(() => {
+    if (!sortKey) return sales;
+    return [...sales].sort((a, b) => {
+      const va = getSortValue(a, sortKey);
+      const vb = getSortValue(b, sortKey);
+      if (typeof va === 'number' && typeof vb === 'number') {
+        return sortDir === 'asc' ? va - vb : vb - va;
+      }
+      const sa = String(va).toLowerCase();
+      const sb = String(vb).toLowerCase();
+      if (sa < sb) return sortDir === 'asc' ? -1 : 1;
+      if (sa > sb) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [sales, sortKey, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedSales.length / itemsPerPage));
+  const safePage = Math.min(page, totalPages);
+  const paginatedSales = sortedSales.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
 
   const showSeller = showSellerColumn && visibleColumns.includes('seller');
   const visibleOptionalCount = OPTIONAL_COLUMN_KEYS.filter((k) => {
@@ -60,6 +113,22 @@ export function SalesSection({ sales, showSellerColumn }: SalesSectionProps) {
     return visibleColumns.includes(k);
   }).length;
   const totalCols = visibleOptionalCount + 1;
+
+  const sortableHead = (key: SortKey, label: string, className?: string) => (
+    <TableHead className={className}>
+      <button
+        type="button"
+        onClick={() => handleSort(key)}
+        className={cn(
+          'flex items-center gap-1 hover:text-foreground transition-colors',
+          className?.includes('text-right') && 'w-full justify-end',
+        )}
+      >
+        {label}
+        <SortIcon column={key} sortKey={sortKey} sortDir={sortDir} />
+      </button>
+    </TableHead>
+  );
 
   return (
     <div className="flex flex-1 flex-col">
@@ -75,12 +144,12 @@ export function SalesSection({ sales, showSellerColumn }: SalesSectionProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {visibleColumns.includes('date') && <TableHead className="w-40">Fecha</TableHead>}
-                  {showSeller && <TableHead>Vendedor</TableHead>}
-                  {visibleColumns.includes('client') && <TableHead>Cliente</TableHead>}
-                  {visibleColumns.includes('items') && <TableHead className="w-20 text-center">Ítems</TableHead>}
-                  {visibleColumns.includes('total') && <TableHead className="w-36 text-right">Total</TableHead>}
-                  {visibleColumns.includes('paymentMethod') && <TableHead className="w-32">Pago</TableHead>}
+                  {visibleColumns.includes('date') && sortableHead('date', 'Fecha', 'w-40')}
+                  {showSeller && sortableHead('seller', 'Vendedor')}
+                  {visibleColumns.includes('client') && sortableHead('client', 'Cliente')}
+                  {visibleColumns.includes('items') && sortableHead('items', 'Ítems', 'w-20 text-center')}
+                  {visibleColumns.includes('total') && sortableHead('total', 'Total', 'w-36 text-right')}
+                  {visibleColumns.includes('paymentMethod') && sortableHead('paymentMethod', 'Pago', 'w-32')}
                   <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
@@ -95,9 +164,8 @@ export function SalesSection({ sales, showSellerColumn }: SalesSectionProps) {
                   paginatedSales.map((sale) => {
                     const isExpanded = expandedId === sale.id;
                     return (
-                      <>
+                      <Fragment key={sale.id}>
                         <TableRow
-                          key={sale.id}
                           className={cn('cursor-pointer', isExpanded && 'border-b-0')}
                           onClick={() => toggleExpand(sale.id)}
                         >
@@ -143,7 +211,7 @@ export function SalesSection({ sales, showSellerColumn }: SalesSectionProps) {
                         </TableRow>
 
                         {isExpanded && (
-                          <TableRow key={`${sale.id}-detail`} className="hover:bg-transparent">
+                          <TableRow className="hover:bg-transparent">
                             <TableCell colSpan={totalCols} className="px-6 pb-4 pt-0 bg-muted/30">
                               <div className="rounded-md border bg-background overflow-hidden">
                                 <table className="w-full text-sm">
@@ -184,7 +252,7 @@ export function SalesSection({ sales, showSellerColumn }: SalesSectionProps) {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })
                 )}
@@ -217,9 +285,9 @@ export function SalesSection({ sales, showSellerColumn }: SalesSectionProps) {
 
             <div className="flex items-center gap-3">
               <span>
-                {sales.length === 0
+                {sortedSales.length === 0
                   ? '0 resultados'
-                  : `${(page - 1) * itemsPerPage + 1}–${Math.min(page * itemsPerPage, sales.length)} de ${sales.length}`}
+                  : `${(safePage - 1) * itemsPerPage + 1}–${Math.min(safePage * itemsPerPage, sortedSales.length)} de ${sortedSales.length}`}
               </span>
               <div className="flex items-center gap-1">
                 <Button
@@ -227,7 +295,7 @@ export function SalesSection({ sales, showSellerColumn }: SalesSectionProps) {
                   size="sm"
                   className="h-8 w-8 p-0"
                   onClick={() => setPage((p) => p - 1)}
-                  disabled={page <= 1}
+                  disabled={safePage <= 1}
                 >
                   ‹
                 </Button>
@@ -236,7 +304,7 @@ export function SalesSection({ sales, showSellerColumn }: SalesSectionProps) {
                   size="sm"
                   className="h-8 w-8 p-0"
                   onClick={() => setPage((p) => p + 1)}
-                  disabled={page >= totalPages}
+                  disabled={safePage >= totalPages}
                 >
                   ›
                 </Button>

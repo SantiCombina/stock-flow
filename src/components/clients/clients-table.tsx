@@ -51,7 +51,6 @@ export function ClientsTable({
   const { getVisibleColumns } = useSettings();
   const visibleColumns = getVisibleColumns('clients');
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
-  const [page, setPage] = useState(1);
 
   const filteredClients = useMemo(() => {
     if (!searchQuery.trim()) return clients;
@@ -66,11 +65,6 @@ export function ClientsTable({
         (c.email ?? '').toLowerCase().includes(q),
     );
   }, [clients, searchQuery]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredClients.length / itemsPerPage));
-  const safePage = Math.min(page, totalPages);
-  const pageStart = (safePage - 1) * itemsPerPage;
-  const pageData = filteredClients.slice(pageStart, pageStart + itemsPerPage);
 
   const handleDelete = async () => {
     if (!clientToDelete) return;
@@ -103,36 +97,50 @@ export function ClientsTable({
     name: {
       key: 'name',
       header: COLUMN_LABELS.name,
+      sortable: true,
+      sortValue: (c) => c.name,
       cell: (c) => <div className="font-medium">{c.name}</div>,
     },
     cuit: {
       key: 'cuit',
       header: COLUMN_LABELS.cuit,
+      sortable: true,
+      sortValue: (c) => c.cuit ?? '',
       cell: (c) => <div className="text-muted-foreground">{c.cuit || '-'}</div>,
     },
     phone: {
       key: 'phone',
       header: COLUMN_LABELS.phone,
+      sortable: true,
+      sortValue: (c) => c.phone ?? '',
       cell: (c) => <div className="text-muted-foreground">{c.phone || '-'}</div>,
     },
     email: {
       key: 'email',
       header: COLUMN_LABELS.email,
+      sortable: true,
+      sortValue: (c) => c.email ?? '',
       cell: (c) => <div className="text-muted-foreground">{c.email || '-'}</div>,
     },
     address: {
       key: 'address',
       header: COLUMN_LABELS.address,
+      sortable: true,
+      sortValue: (c) => c.address ?? '',
       cell: (c) => <div className="text-muted-foreground">{c.address || '-'}</div>,
     },
     localidad: {
       key: 'localidad',
       header: COLUMN_LABELS.localidad,
+      sortable: true,
+      sortValue: (c) => c.localidad ?? '',
       cell: (c) => <div className="text-muted-foreground">{c.localidad || '-'}</div>,
     },
     provincia: {
       key: 'provincia',
       header: COLUMN_LABELS.provincia,
+      sortable: true,
+      sortValue: (c) => c.provincia ?? '',
       cell: (c) => <div className="text-muted-foreground">{c.provincia || '-'}</div>,
     },
   };
@@ -140,6 +148,8 @@ export function ClientsTable({
   const sellerColumn: Column<Client> = {
     key: 'seller',
     header: COLUMN_LABELS.seller,
+    sortable: true,
+    sortValue: (c) => getSellerName(c),
     cell: (c) => <div className="text-muted-foreground">{getSellerName(c)}</div>,
   };
 
@@ -180,16 +190,12 @@ export function ClientsTable({
   return (
     <>
       <DataTable<Client>
-        data={pageData}
+        data={filteredClients}
         columns={columns}
         keyExtractor={(c) => c.id}
         emptyMessage={searchQuery ? 'No se encontraron clientes' : 'No hay clientes registrados aún'}
-        page={safePage}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        itemsPerPage={itemsPerPage}
+        defaultItemsPerPage={itemsPerPage}
         onItemsPerPageChange={onItemsPerPageChange}
-        totalItems={filteredClients.length}
       />
 
       <AlertDialog open={!!clientToDelete} onOpenChange={() => setClientToDelete(null)}>

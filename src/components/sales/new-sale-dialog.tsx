@@ -313,7 +313,7 @@ export function NewSaleDialog({ isOpen, onClose, onSuccess }: NewSaleDialogProps
                     size="sm"
                     className="self-start"
                     onClick={() => append({ variantId: 0, quantity: 1, unitPrice: 0, stockSource: 'warehouse' })}
-                    disabled={variants.length === 0}
+                    disabled={variants.length === 0 || hasUnselectedVariant}
                   >
                     + Agregar producto
                   </Button>

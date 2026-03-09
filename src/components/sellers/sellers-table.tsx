@@ -50,10 +50,6 @@ export function SellersTable({ sellers, searchQuery = '', onEdit, onDispatch, on
     return sellers.filter((s) => s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q));
   }, [sellers, searchQuery]);
 
-  const handlePageChange = () => {
-    return;
-  };
-
   const handleDelete = async () => {
     if (!sellerToDelete) return;
 
@@ -78,21 +74,29 @@ export function SellersTable({ sellers, searchQuery = '', onEdit, onDispatch, on
     name: {
       key: 'name',
       header: COLUMN_LABELS.name,
+      sortable: true,
+      sortValue: (s) => s.name,
       cell: (seller) => <div className="font-medium">{seller.name}</div>,
     },
     email: {
       key: 'email',
       header: COLUMN_LABELS.email,
+      sortable: true,
+      sortValue: (s) => s.email,
       cell: (seller) => <div className="text-muted-foreground">{seller.email}</div>,
     },
     phone: {
       key: 'phone',
       header: COLUMN_LABELS.phone,
+      sortable: true,
+      sortValue: (s) => s.phone ?? '',
       cell: (seller) => <div className="text-muted-foreground">{seller.phone || '-'}</div>,
     },
     createdAt: {
       key: 'createdAt',
       header: COLUMN_LABELS.createdAt,
+      sortable: true,
+      sortValue: (s) => s.createdAt,
       cell: (seller) => {
         const date = new Date(seller.createdAt);
         return (
@@ -178,11 +182,6 @@ export function SellersTable({ sellers, searchQuery = '', onEdit, onDispatch, on
         columns={columns}
         keyExtractor={(seller) => seller.id}
         emptyMessage={searchQuery ? 'No se encontraron vendedores' : 'No hay vendedores registrados aún'}
-        page={1}
-        totalPages={1}
-        onPageChange={handlePageChange}
-        itemsPerPage={filteredSellers.length || 10}
-        totalItems={filteredSellers.length}
       />
 
       <AlertDialog open={!!sellerToDelete} onOpenChange={() => setSellerToDelete(null)}>

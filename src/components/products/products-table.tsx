@@ -42,6 +42,7 @@ const STALE_TIME = 2 * 60 * 1000;
 interface ProductsTableProps {
   searchQuery?: string;
   onEdit?: (productId: number) => void;
+  showActions?: boolean;
 }
 
 export interface ProductsTableRef {
@@ -49,368 +50,358 @@ export interface ProductsTableRef {
   silentRefresh: () => Promise<void>;
 }
 
-export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(({ searchQuery = '', onEdit }, ref) => {
-  const router = useRouter();
-  const { getItemsPerPage, getVisibleColumns, isLoading: isSettingsLoading, updateItemsPerPage } = useSettings();
+export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(
+  ({ searchQuery = '', onEdit, showActions = true }, ref) => {
+    const router = useRouter();
+    const { getItemsPerPage, getVisibleColumns, isLoading: isSettingsLoading, updateItemsPerPage } = useSettings();
 
-  const [allVariants, setAllVariants] = useState<PopulatedProductVariant[]>(variantsCache.data);
-  const [isLoading, setIsLoading] = useState(!variantsCache.isLoaded);
-  const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [visibleColumns, setVisibleColumns] = useState<string[]>([]);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  const [variantForMovement, setVariantForMovement] = useState<PopulatedProductVariant | null>(null);
-  const itemsPerPageSyncedRef = useRef(false);
+    const [allVariants, setAllVariants] = useState<PopulatedProductVariant[]>(variantsCache.data);
+    const [isLoading, setIsLoading] = useState(!variantsCache.isLoaded);
+    const [visibleColumns, setVisibleColumns] = useState<string[]>([]);
+    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+    const [variantForMovement, setVariantForMovement] = useState<PopulatedProductVariant | null>(null);
+    const itemsPerPageSyncedRef = useRef(false);
 
-  const filteredVariants = useMemo(() => {
-    if (!searchQuery.trim()) return allVariants;
-    const q = searchQuery.toLowerCase();
-    return allVariants.filter((v) => {
-      const brand = typeof v.product.brand === 'object' ? v.product.brand?.name : '';
-      return (
-        v.product.name.toLowerCase().includes(q) ||
-        (v.code && v.code.toLowerCase().includes(q)) ||
-        (brand && brand.toLowerCase().includes(q))
-      );
-    });
-  }, [allVariants, searchQuery]);
-
-  const totalItems = filteredVariants.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const paginatedVariants = useMemo(() => {
-    const start = (page - 1) * itemsPerPage;
-    return filteredVariants.slice(start, start + itemsPerPage);
-  }, [filteredVariants, page, itemsPerPage]);
-
-  useEffect(() => {
-    if (!isSettingsLoading) {
-      if (!itemsPerPageSyncedRef.current) {
-        setItemsPerPage(getItemsPerPage());
-        itemsPerPageSyncedRef.current = true;
-      }
-      setVisibleColumns(getVisibleColumns('products'));
-    }
-  }, [isSettingsLoading, getItemsPerPage, getVisibleColumns]);
-
-  const loadVariants = useCallback(async (silent = false) => {
-    if (!silent) setIsLoading(true);
-    try {
-      const result = await getVariantsAction({
-        options: {
-          limit: 10000,
-          sort: 'product',
-        },
+    const filteredVariants = useMemo(() => {
+      if (!searchQuery.trim()) return allVariants;
+      const q = searchQuery.toLowerCase();
+      return allVariants.filter((v) => {
+        const brand = typeof v.product.brand === 'object' ? v.product.brand?.name : '';
+        return (
+          v.product.name.toLowerCase().includes(q) ||
+          (v.code && v.code.toLowerCase().includes(q)) ||
+          (brand && brand.toLowerCase().includes(q))
+        );
       });
+    }, [allVariants, searchQuery]);
+
+    useEffect(() => {
+      if (!isSettingsLoading) {
+        if (!itemsPerPageSyncedRef.current) {
+          itemsPerPageSyncedRef.current = true;
+        }
+        setVisibleColumns(getVisibleColumns('products'));
+      }
+    }, [isSettingsLoading, getItemsPerPage, getVisibleColumns]);
+
+    const loadVariants = useCallback(async (silent = false) => {
+      if (!silent) setIsLoading(true);
+      try {
+        const result = await getVariantsAction({
+          options: {
+            limit: 10000,
+            sort: 'product',
+          },
+        });
+
+        if (result?.serverError) {
+          if (!silent) toast.error(result.serverError);
+          return;
+        }
+
+        if (result?.data?.success) {
+          variantsCache.data = result.data.docs;
+          variantsCache.timestamp = Date.now();
+          variantsCache.isLoaded = true;
+          setAllVariants(result.data.docs);
+        } else {
+          if (!silent) toast.error('Error al cargar productos');
+        }
+      } catch {
+        if (!silent) toast.error('Error al cargar productos');
+      } finally {
+        if (!silent) setIsLoading(false);
+      }
+    }, []);
+
+    useEffect(() => {
+      if (!variantsCache.isLoaded) {
+        void loadVariants(false);
+      } else if (Date.now() - variantsCache.timestamp > STALE_TIME) {
+        void loadVariants(true);
+      }
+    }, [loadVariants]);
+
+    const handleDelete = async () => {
+      if (!productToDelete) return;
+
+      const productId = productToDelete.id;
+
+      // Optimistic: capture current state for potential rollback
+      const previousVariants = allVariants;
+      const nextVariants = allVariants.filter((v) => v.product.id !== productId);
+
+      // Remove from UI and close dialog immediately
+      variantsCache.data = nextVariants;
+      setAllVariants(nextVariants);
+      setProductToDelete(null);
+
+      const result = await deleteProductAction({ id: productId });
 
       if (result?.serverError) {
-        if (!silent) toast.error(result.serverError);
+        variantsCache.data = previousVariants;
+        setAllVariants(previousVariants);
+        toast.error(result.serverError);
         return;
       }
 
       if (result?.data?.success) {
-        variantsCache.data = result.data.docs;
-        variantsCache.timestamp = Date.now();
-        variantsCache.isLoaded = true;
-        setAllVariants(result.data.docs);
+        toast.success('Producto eliminado correctamente');
       } else {
-        if (!silent) toast.error('Error al cargar productos');
+        variantsCache.data = previousVariants;
+        setAllVariants(previousVariants);
+        toast.error('Error al eliminar producto');
       }
-    } catch {
-      if (!silent) toast.error('Error al cargar productos');
-    } finally {
-      if (!silent) setIsLoading(false);
-    }
-  }, []);
+    };
 
-  useEffect(() => {
-    if (!variantsCache.isLoaded) {
-      void loadVariants(false);
-    } else if (Date.now() - variantsCache.timestamp > STALE_TIME) {
-      void loadVariants(true);
-    }
-  }, [loadVariants]);
+    useImperativeHandle(ref, () => ({
+      refresh: () => loadVariants(false),
+      silentRefresh: () => loadVariants(true),
+    }));
 
-  useEffect(() => {
-    setPage(1);
-  }, [searchQuery]);
+    const updateVariantStock = useCallback((variantId: number, newStock: number) => {
+      setAllVariants((prev) => {
+        const updated = prev.map((variant) => (variant.id === variantId ? { ...variant, stock: newStock } : variant));
+        variantsCache.data = updated;
+        return updated;
+      });
+    }, []);
 
-  const handleDelete = async () => {
-    if (!productToDelete) return;
+    const shouldShowColumn = useCallback(
+      (columnKey: string) => {
+        return visibleColumns.includes(columnKey);
+      },
+      [visibleColumns],
+    );
 
-    const productId = productToDelete.id;
+    const allColumns: Record<string, Column<PopulatedProductVariant>> = {
+      image: {
+        key: 'image',
+        header: '',
+        cell: (variant) => {
+          const product = variant.product;
+          const image = typeof product.image === 'object' && product.image?.url ? product.image.url : null;
+          return (
+            <div className="flex items-center justify-center">
+              {image ? (
+                <img src={image} alt={product.name} className="h-10 w-10 rounded object-cover" />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
+                  <ImageOff className="h-5 w-5 text-muted-foreground" />
+                </div>
+              )}
+            </div>
+          );
+        },
+        className: 'w-16',
+      },
+      name: {
+        key: 'name',
+        header: COLUMN_LABELS.name,
+        sortable: true,
+        sortValue: (v) => v.product.name,
+        cell: (variant) => {
+          const product = variant.product;
+          return <div className="font-medium">{product.name}</div>;
+        },
+      },
+      code: {
+        key: 'code',
+        header: COLUMN_LABELS.code,
+        sortable: true,
+        sortValue: (v) => v.code ?? '',
+        cell: (variant) => (
+          <span className="inline-block px-2.5 py-1 rounded-md bg-muted font-mono text-sm font-medium tracking-wide text-foreground/90">
+            {variant.code || '-'}
+          </span>
+        ),
+      },
+      brand: {
+        key: 'brand',
+        header: COLUMN_LABELS.brand,
+        sortable: true,
+        sortValue: (v) => (typeof v.product.brand === 'object' ? (v.product.brand?.name ?? '') : ''),
+        cell: (variant) => {
+          const brand = variant.product.brand;
+          if (typeof brand === 'object' && brand?.name) {
+            return brand.name;
+          }
+          return '-';
+        },
+      },
+      category: {
+        key: 'category',
+        header: COLUMN_LABELS.category,
+        sortable: true,
+        sortValue: (v) => (typeof v.product.category === 'object' ? (v.product.category?.name ?? '') : ''),
+        cell: (variant) => {
+          const category = variant.product.category;
+          if (typeof category === 'object' && category?.name) {
+            return category.name;
+          }
+          return '-';
+        },
+      },
+      quality: {
+        key: 'quality',
+        header: COLUMN_LABELS.quality,
+        sortable: true,
+        sortValue: (v) => (typeof v.product.quality === 'object' ? (v.product.quality?.name ?? '') : ''),
+        cell: (variant) => {
+          const quality = variant.product.quality;
+          if (typeof quality === 'object' && quality?.name) {
+            return quality.name;
+          }
+          return '-';
+        },
+      },
+      presentation: {
+        key: 'presentation',
+        header: COLUMN_LABELS.presentation,
+        sortable: true,
+        sortValue: (v) => v.presentation?.label ?? '',
+        cell: (variant) => {
+          const presentation = variant.presentation;
+          return <span>{presentation?.label || '-'}</span>;
+        },
+      },
+      stock: {
+        key: 'stock',
+        header: COLUMN_LABELS.stock,
+        sortable: true,
+        sortValue: (v) => v.stock,
+        cell: (variant) => (
+          <Badge className="bg-white text-foreground border border-gray-200 shadow-none">{variant.stock}</Badge>
+        ),
+      },
+      price: {
+        key: 'price',
+        header: COLUMN_LABELS.price,
+        sortable: true,
+        sortValue: (v) => v.costPrice * (1 + (v.profitMargin ?? 0) / 100),
+        cell: (variant) => {
+          const suggestedPrice = variant.costPrice * (1 + (variant.profitMargin ?? 0) / 100);
+          const formattedPrice = suggestedPrice.toLocaleString('es-AR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+          return (
+            <div className="text-right">
+              <span>$ {formattedPrice}</span>
+            </div>
+          );
+        },
+        className: 'text-right',
+      },
+    };
 
-    // Optimistic: capture current state for potential rollback
-    const previousVariants = allVariants;
-    const nextVariants = allVariants.filter((v) => v.product.id !== productId);
-
-    // Remove from UI and close dialog immediately
-    variantsCache.data = nextVariants;
-    setAllVariants(nextVariants);
-    setProductToDelete(null);
-
-    const result = await deleteProductAction({ id: productId });
-
-    if (result?.serverError) {
-      variantsCache.data = previousVariants;
-      setAllVariants(previousVariants);
-      toast.error(result.serverError);
-      return;
-    }
-
-    if (result?.data?.success) {
-      toast.success('Producto eliminado correctamente');
-    } else {
-      variantsCache.data = previousVariants;
-      setAllVariants(previousVariants);
-      toast.error('Error al eliminar producto');
-    }
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleItemsPerPageChange = (newItemsPerPage: number) => {
-    setItemsPerPage(newItemsPerPage);
-    setPage(1);
-    void updateItemsPerPage(newItemsPerPage as Parameters<typeof updateItemsPerPage>[0]);
-  };
-
-  useImperativeHandle(ref, () => ({
-    refresh: () => loadVariants(false),
-    silentRefresh: () => loadVariants(true),
-  }));
-
-  const updateVariantStock = useCallback((variantId: number, newStock: number) => {
-    setAllVariants((prev) => {
-      const updated = prev.map((variant) => (variant.id === variantId ? { ...variant, stock: newStock } : variant));
-      variantsCache.data = updated;
-      return updated;
-    });
-  }, []);
-
-  const shouldShowColumn = useCallback(
-    (columnKey: string) => {
-      return visibleColumns.includes(columnKey);
-    },
-    [visibleColumns],
-  );
-
-  const allColumns: Record<string, Column<PopulatedProductVariant>> = {
-    image: {
-      key: 'image',
+    const actionsColumn: Column<PopulatedProductVariant> = {
+      key: 'actions',
       header: '',
       cell: (variant) => {
         const product = variant.product;
-        const image = typeof product.image === 'object' && product.image?.url ? product.image.url : null;
         return (
-          <div className="flex items-center justify-center">
-            {image ? (
-              <img src={image} alt={product.name} className="h-10 w-10 rounded object-cover" />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
-                <ImageOff className="h-5 w-5 text-muted-foreground" />
-              </div>
-            )}
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  if (onEdit) {
+                    onEdit(product.id);
+                  } else {
+                    router.push(`/products/${product.id}/edit`);
+                  }
+                }}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setVariantForMovement(variant)}>
+                <PackagePlus className="mr-2 h-4 w-4" />
+                Registrar movimiento
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setProductToDelete(product)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
       className: 'w-16',
-    },
-    name: {
-      key: 'name',
-      header: COLUMN_LABELS.name,
+    };
+
+    const statusDotColumn: Column<PopulatedProductVariant> = {
+      key: 'status',
+      header: '',
       cell: (variant) => {
-        const product = variant.product;
-        return <div className="font-medium">{product.name}</div>;
-      },
-    },
-    code: {
-      key: 'code',
-      header: COLUMN_LABELS.code,
-      cell: (variant) => (
-        <span className="inline-block px-2.5 py-1 rounded-md bg-muted font-mono text-sm font-medium tracking-wide text-foreground/90">
-          {variant.code || '-'}
-        </span>
-      ),
-    },
-    brand: {
-      key: 'brand',
-      header: COLUMN_LABELS.brand,
-      cell: (variant) => {
-        const brand = variant.product.brand;
-        if (typeof brand === 'object' && brand?.name) {
-          return brand.name;
-        }
-        return '-';
-      },
-    },
-    category: {
-      key: 'category',
-      header: COLUMN_LABELS.category,
-      cell: (variant) => {
-        const category = variant.product.category;
-        if (typeof category === 'object' && category?.name) {
-          return category.name;
-        }
-        return '-';
-      },
-    },
-    quality: {
-      key: 'quality',
-      header: COLUMN_LABELS.quality,
-      cell: (variant) => {
-        const quality = variant.product.quality;
-        if (typeof quality === 'object' && quality?.name) {
-          return quality.name;
-        }
-        return '-';
-      },
-    },
-    presentation: {
-      key: 'presentation',
-      header: COLUMN_LABELS.presentation,
-      cell: (variant) => {
-        const presentation = variant.presentation;
-        return <span>{presentation?.label || '-'}</span>;
-      },
-    },
-    stock: {
-      key: 'stock',
-      header: COLUMN_LABELS.stock,
-      cell: (variant) => (
-        <Badge className="bg-white text-foreground border border-gray-200 shadow-none">{variant.stock}</Badge>
-      ),
-    },
-    price: {
-      key: 'price',
-      header: COLUMN_LABELS.price,
-      cell: (variant) => {
-        const suggestedPrice = variant.costPrice * (1 + (variant.profitMargin ?? 0) / 100);
-        const formattedPrice = suggestedPrice.toLocaleString('es-AR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
+        const isActive = variant.product.isActive ?? true;
         return (
-          <div className="text-right">
-            <span>$ {formattedPrice}</span>
+          <div className="flex justify-center">
+            <div className={`h-2 w-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
           </div>
         );
       },
-      className: 'text-right',
-    },
-  };
+      className: 'w-6 pr-0',
+    };
 
-  const actionsColumn: Column<PopulatedProductVariant> = {
-    key: 'actions',
-    header: '',
-    cell: (variant) => {
-      const product = variant.product;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => {
-                if (onEdit) {
-                  onEdit(product.id);
-                } else {
-                  router.push(`/products/${product.id}/edit`);
-                }
-              }}
-            >
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setVariantForMovement(variant)}>
-              <PackagePlus className="mr-2 h-4 w-4" />
-              Registrar movimiento
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setProductToDelete(product)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-    className: 'w-16',
-  };
+    const columns: Column<PopulatedProductVariant>[] = [
+      statusDotColumn,
+      allColumns.image,
+      ...Object.entries(allColumns)
+        .filter(([key]) => key !== 'image' && shouldShowColumn(key))
+        .map(([, column]) => column),
+      ...(showActions ? [actionsColumn] : []),
+    ];
 
-  const statusDotColumn: Column<PopulatedProductVariant> = {
-    key: 'status',
-    header: '',
-    cell: (variant) => {
-      const isActive = variant.product.isActive ?? true;
-      return (
-        <div className="flex justify-center">
-          <div className={`h-2 w-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
-        </div>
-      );
-    },
-    className: 'w-6 pr-0',
-  };
+    return (
+      <>
+        <DataTable
+          columns={columns}
+          data={filteredVariants}
+          keyExtractor={(v) => `${v.id}-${v.product.id}`}
+          isLoading={isLoading || isSettingsLoading}
+          emptyMessage={searchQuery ? 'No se encontraron productos' : 'No hay productos'}
+          defaultItemsPerPage={getItemsPerPage()}
+          onItemsPerPageChange={(n) => void updateItemsPerPage(n as Parameters<typeof updateItemsPerPage>[0])}
+        />
 
-  const columns: Column<PopulatedProductVariant>[] = [
-    statusDotColumn,
-    allColumns.image,
-    ...Object.entries(allColumns)
-      .filter(([key]) => key !== 'image' && shouldShowColumn(key))
-      .map(([, column]) => column),
-    actionsColumn,
-  ];
+        <AlertDialog open={productToDelete !== null} onOpenChange={() => setProductToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción eliminará el producto &quot;{productToDelete?.name}
+                &quot; y todas sus presentaciones. Esta acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} variant="destructive">
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-  return (
-    <>
-      <DataTable
-        columns={columns}
-        data={paginatedVariants}
-        keyExtractor={(v) => `${v.id}-${v.product.id}`}
-        isLoading={isLoading || isSettingsLoading}
-        emptyMessage={searchQuery ? 'No se encontraron productos' : 'No hay productos'}
-        page={page}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-        itemsPerPage={itemsPerPage}
-        onItemsPerPageChange={handleItemsPerPageChange}
-        totalItems={totalItems}
-      />
-
-      <AlertDialog open={productToDelete !== null} onOpenChange={() => setProductToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción eliminará el producto &quot;{productToDelete?.name}
-              &quot; y todas sus presentaciones. Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} variant="destructive">
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <StockMovementModal
-        isOpen={variantForMovement !== null}
-        onClose={() => setVariantForMovement(null)}
-        variant={variantForMovement}
-        onSuccess={(variantId, newStock) => {
-          updateVariantStock(variantId, newStock);
-        }}
-      />
-    </>
-  );
-});
+        <StockMovementModal
+          isOpen={variantForMovement !== null}
+          onClose={() => setVariantForMovement(null)}
+          variant={variantForMovement}
+          onSuccess={(variantId, newStock) => {
+            updateVariantStock(variantId, newStock);
+          }}
+        />
+      </>
+    );
+  },
+);
 
 ProductsTable.displayName = 'ProductsTable';
