@@ -83,6 +83,11 @@ export const productSchema = z.object({
       invalid_type_error: 'La calidad debe ser una cadena de texto.',
     })
     .optional(),
+  imageId: z
+    .number({
+      invalid_type_error: 'La imagen debe ser un número.',
+    })
+    .optional(),
   isActive: z.boolean({
     required_error: 'El estado es requerido.',
     invalid_type_error: 'El estado debe ser un valor booleano.',

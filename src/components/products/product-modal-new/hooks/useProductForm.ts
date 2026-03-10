@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { convertToWebP } from '@/lib/image-utils';
 import type { ProductVariant } from '@/payload-types';
 
 import {
@@ -13,7 +14,13 @@ import {
   deleteVariantAction,
   getProductByIdAction,
 } from '../../actions';
+import { deleteMediaAction } from '../../media-actions';
 import { productSchema, type ProductFormData } from '../schemas';
+
+interface PayloadMediaResponse {
+  doc: { id: number; url?: string | null };
+  errors?: Array<{ message: string }>;
+}
 
 interface UseProductFormProps {
   productId?: number;
@@ -22,11 +29,30 @@ interface UseProductFormProps {
   onClose: () => void;
 }
 
+async function uploadImage(file: File, altText: string): Promise<number> {
+  const webpFile = await convertToWebP(file);
+  const formData = new FormData();
+  formData.append('file', webpFile);
+  formData.append('_payload', JSON.stringify({ alt: altText }));
+
+  const response = await fetch('/api/media', { method: 'POST', body: formData });
+  const data = (await response.json()) as PayloadMediaResponse;
+
+  if (!response.ok) {
+    throw new Error(data.errors?.[0]?.message ?? 'Error al subir la imagen');
+  }
+  return data.doc.id;
+}
+
 export function useProductForm({ productId, isOpen, onSuccess, onClose }: UseProductFormProps) {
   const isEditing = !!productId;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(isEditing);
   const [variantsToDelete, setVariantsToDelete] = useState<number[]>([]);
+  const [currentImageId, setCurrentImageId] = useState<number | undefined>(undefined);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | undefined>(undefined);
+  const [previousImageId, setPreviousImageId] = useState<number | undefined>(undefined);
+  const [pendingImageFile, setPendingImageFile] = useState<File | undefined>(undefined);
 
   const {
     register,
@@ -63,6 +89,13 @@ export function useProductForm({ productId, isOpen, onSuccess, onClose }: UsePro
     name: 'variants',
   });
 
+  const resetImageState = () => {
+    setCurrentImageId(undefined);
+    setCurrentImageUrl(undefined);
+    setPreviousImageId(undefined);
+    setPendingImageFile(undefined);
+  };
+
   useEffect(() => {
     if (isEditing && productId && isOpen) {
       setIsLoading(true);
@@ -96,11 +129,21 @@ export function useProductForm({ productId, isOpen, onSuccess, onClose }: UsePro
                 profitMargin: v.profitMargin ?? 0,
               })),
             });
+
+            if (typeof product.image === 'object' && product.image) {
+              setCurrentImageId(product.image.id);
+              setCurrentImageUrl(product.image.url ?? undefined);
+              setPreviousImageId(product.image.id);
+            } else if (typeof product.image === 'number') {
+              setCurrentImageId(product.image);
+              setPreviousImageId(product.image);
+            } else {
+              resetImageState();
+            }
           }
         })
         .finally(() => setIsLoading(false));
     } else if (!isEditing && isOpen) {
-      // Reset form to default values when opening in create mode
       reset({
         name: '',
         description: '',
@@ -120,12 +163,14 @@ export function useProductForm({ productId, isOpen, onSuccess, onClose }: UsePro
         ],
       });
       setVariantsToDelete([]);
+      resetImageState();
     }
   }, [isEditing, productId, isOpen, reset]);
 
   const handleClose = () => {
     reset();
     setVariantsToDelete([]);
+    resetImageState();
     onClose();
   };
 
@@ -148,9 +193,24 @@ export function useProductForm({ productId, isOpen, onSuccess, onClose }: UsePro
     });
   };
 
+  const handleFileSelect = (file: File | undefined) => {
+    setPendingImageFile(file);
+    if (!file) {
+      setCurrentImageId(undefined);
+      setCurrentImageUrl(undefined);
+    }
+  };
+
   const onSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
     try {
+      let resolvedImageId = currentImageId;
+
+      if (pendingImageFile) {
+        const altText = data.name.trim() || 'imagen-producto';
+        resolvedImageId = await uploadImage(pendingImageFile, altText);
+      }
+
       if (isEditing && productId) {
         const productResult = await updateProductAction({
           id: productId,
@@ -159,6 +219,7 @@ export function useProductForm({ productId, isOpen, onSuccess, onClose }: UsePro
           brand: data.brandId ? parseInt(data.brandId) : undefined,
           category: data.categoryId ? parseInt(data.categoryId) : undefined,
           quality: data.qualityId ? parseInt(data.qualityId) : undefined,
+          image: resolvedImageId,
           isActive: data.isActive,
         });
 
@@ -170,6 +231,10 @@ export function useProductForm({ productId, isOpen, onSuccess, onClose }: UsePro
         if (!productResult?.data?.success) {
           toast.error('Error al actualizar el producto');
           return;
+        }
+
+        if (previousImageId !== undefined && previousImageId !== resolvedImageId) {
+          await deleteMediaAction({ id: previousImageId });
         }
 
         for (const variantId of variantsToDelete) {
@@ -220,6 +285,7 @@ export function useProductForm({ productId, isOpen, onSuccess, onClose }: UsePro
           brand: data.brandId ? parseInt(data.brandId) : undefined,
           category: data.categoryId ? parseInt(data.categoryId) : undefined,
           quality: data.qualityId ? parseInt(data.qualityId) : undefined,
+          image: resolvedImageId,
           isActive: data.isActive,
         });
 
@@ -277,5 +343,8 @@ export function useProductForm({ productId, isOpen, onSuccess, onClose }: UsePro
     handleAddVariant,
     handleRemoveVariant,
     handleClose,
+    pendingImageFile,
+    currentImageUrl,
+    handleFileSelect,
   };
 }

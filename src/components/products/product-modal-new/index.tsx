@@ -50,6 +50,9 @@ export function ProductModal({
     handleAddVariant,
     handleRemoveVariant,
     handleClose,
+    pendingImageFile,
+    currentImageUrl,
+    handleFileSelect,
   } = useProductForm({
     productId,
     isOpen,
@@ -97,7 +100,14 @@ export function ProductModal({
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 gap-4">
               <div className="overflow-y-auto flex-1 space-y-5 pr-1">
-                <ProductInfoSection register={register} control={control} errors={errors} />
+                <ProductInfoSection
+                  register={register}
+                  control={control}
+                  errors={errors}
+                  pendingImageFile={pendingImageFile}
+                  currentImageUrl={currentImageUrl}
+                  onFileSelect={handleFileSelect}
+                />
 
                 <ProductAttributesSection
                   control={control}

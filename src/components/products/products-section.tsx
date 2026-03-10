@@ -15,6 +15,22 @@ import { getReferenceDataAction } from './actions';
 import { ProductModal } from './product-modal-new/index';
 import { ProductsTable, type ProductsTableRef } from './products-table';
 
+interface RefData {
+  brands: Brand[];
+  categories: Category[];
+  qualities: Quality[];
+  presentations: Presentation[];
+}
+
+let refDataCache: RefData | null = null;
+
+const emptyRefData: RefData = {
+  brands: [],
+  categories: [],
+  qualities: [],
+  presentations: [],
+};
+
 export function ProductsSection() {
   const user = useUserOptional();
   const canCreateProduct = user?.role === 'owner' || user?.role === 'admin';
@@ -23,15 +39,14 @@ export function ProductsSection() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<number | undefined>();
-  const [referenceData, setReferenceData] = useState<{
-    brands: Brand[];
-    categories: Category[];
-    qualities: Quality[];
-    presentations: Presentation[];
-  } | null>(null);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [referenceData, setReferenceData] = useState<RefData>(refDataCache ?? emptyRefData);
 
-  const loadReferenceData = async () => {
+  const loadReferenceData = useCallback(async (forceRefresh = false) => {
+    if (refDataCache && !forceRefresh) {
+      setReferenceData(refDataCache);
+      return true;
+    }
+
     const result = await getReferenceDataAction();
 
     if (result?.serverError) {
@@ -40,45 +55,28 @@ export function ProductsSection() {
     }
 
     if (result?.data?.success) {
-      setReferenceData({
+      refDataCache = {
         brands: result.data.brands,
         categories: result.data.categories,
         qualities: result.data.qualities,
         presentations: result.data.presentations,
-      });
+      };
+      setReferenceData(refDataCache);
       return true;
     }
     return false;
-  };
+  }, []);
 
-  const handleOpenCreateModal = async () => {
-    setIsLoadingData(true);
+  const handleOpenCreateModal = () => {
     setEditingProductId(undefined);
-    try {
-      const success = await loadReferenceData();
-      if (success) {
-        setIsModalOpen(true);
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al cargar datos');
-    } finally {
-      setIsLoadingData(false);
-    }
+    setIsModalOpen(true);
+    void loadReferenceData();
   };
 
-  const handleOpenEditModal = async (productId: number) => {
-    setIsLoadingData(true);
+  const handleOpenEditModal = (productId: number) => {
     setEditingProductId(productId);
-    try {
-      const success = await loadReferenceData();
-      if (success) {
-        setIsModalOpen(true);
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al cargar datos');
-    } finally {
-      setIsLoadingData(false);
-    }
+    setIsModalOpen(true);
+    void loadReferenceData();
   };
 
   const handleSuccess = useCallback(() => {
@@ -97,9 +95,9 @@ export function ProductsSection() {
         description="Gestión del catálogo de productos"
         actions={
           canCreateProduct ? (
-            <Button onClick={handleOpenCreateModal} disabled={isLoadingData} size="sm">
+            <Button onClick={handleOpenCreateModal} size="sm">
               <Plus className="h-4 w-4" />
-              {isLoadingData ? 'Cargando…' : 'Nuevo producto'}
+              Nuevo producto
             </Button>
           ) : undefined
         }
@@ -128,19 +126,17 @@ export function ProductsSection() {
         />
       </main>
 
-      {referenceData && (
-        <ProductModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onSuccess={handleSuccess}
-          productId={editingProductId}
-          brands={referenceData.brands}
-          categories={referenceData.categories}
-          qualities={referenceData.qualities}
-          presentations={referenceData.presentations}
-          onRefreshEntities={loadReferenceData}
-        />
-      )}
+      <ProductModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSuccess={handleSuccess}
+        productId={editingProductId}
+        brands={referenceData.brands}
+        categories={referenceData.categories}
+        qualities={referenceData.qualities}
+        presentations={referenceData.presentations}
+        onRefreshEntities={() => loadReferenceData(true)}
+      />
     </div>
   );
 }

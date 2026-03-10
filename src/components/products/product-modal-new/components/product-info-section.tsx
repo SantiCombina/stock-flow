@@ -8,12 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
+import { ImageUpload } from './image-upload';
+
 interface ProductFormData {
   name: string;
   description?: string;
   brandId?: string;
   categoryId?: string;
   qualityId?: string;
+  imageId?: number;
   isActive: boolean;
   variants: Array<{
     id?: number;
@@ -30,14 +33,29 @@ interface ProductInfoSectionProps {
   register: UseFormRegister<ProductFormData>;
   control: Control<ProductFormData>;
   errors: FieldErrors<ProductFormData>;
+  pendingImageFile: File | undefined;
+  currentImageUrl: string | undefined;
+  onFileSelect: (file: File | undefined) => void;
 }
 
-export function ProductInfoSection({ register, control, errors }: ProductInfoSectionProps) {
+export function ProductInfoSection({
+  register,
+  control,
+  errors,
+  pendingImageFile,
+  currentImageUrl,
+  onFileSelect,
+}: ProductInfoSectionProps) {
   return (
     <div className="space-y-4">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pb-2 border-b">
         Información general
       </h3>
+
+      <div className="space-y-2">
+        <Label>Imagen del producto</Label>
+        <ImageUpload pendingFile={pendingImageFile} previewUrl={currentImageUrl} onFileSelect={onFileSelect} />
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="name">Nombre *</Label>

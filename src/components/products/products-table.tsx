@@ -1,6 +1,7 @@
 'use client';
 
 import { ImageOff, MoreVertical, PackagePlus, Pencil, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -184,7 +185,7 @@ export const ProductsTable = forwardRef<ProductsTableRef, ProductsTableProps>(
           return (
             <div className="flex items-center justify-center">
               {image ? (
-                <img src={image} alt={product.name} className="h-10 w-10 rounded object-cover" />
+                <Image src={image} alt={product.name} width={40} height={40} className="rounded object-cover" />
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded bg-muted">
                   <ImageOff className="h-5 w-5 text-muted-foreground" />
