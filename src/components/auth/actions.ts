@@ -68,20 +68,16 @@ export const registerUser = actionClient.schema(registerSchema).action(async ({ 
   return { success: true };
 });
 
-export const forgotPasswordAction = actionClient
-  .schema(forgotPasswordSchema)
-  .action(async ({ parsedInput }) => {
-    await forgotPasswordService(parsedInput.email);
-    return { success: true };
-  });
+export const forgotPasswordAction = actionClient.schema(forgotPasswordSchema).action(async ({ parsedInput }) => {
+  await forgotPasswordService(parsedInput.email);
+  return { success: true };
+});
 
-export const resetPasswordAction = actionClient
-  .schema(resetPasswordSchema)
-  .action(async ({ parsedInput }) => {
-    try {
-      await resetPasswordService(parsedInput.token, parsedInput.password);
-      return { success: true };
-    } catch {
-      return { error: 'El enlace de recuperación es inválido o ha expirado.' };
-    }
-  });
+export const resetPasswordAction = actionClient.schema(resetPasswordSchema).action(async ({ parsedInput }) => {
+  try {
+    await resetPasswordService(parsedInput.token, parsedInput.password);
+    return { success: true };
+  } catch {
+    return { error: 'El enlace de recuperación es inválido o ha expirado.' };
+  }
+});

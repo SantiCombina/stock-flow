@@ -32,13 +32,12 @@ export function ResetPasswordEmail({ resetUrl }: ResetPasswordEmailProps) {
             <Heading style={heading}>Recuperá tu contraseña</Heading>
 
             <Text style={paragraph}>
-              Recibimos una solicitud para restablecer la contraseña de tu cuenta. Hacé clic en el
-              botón para crear una nueva.
+              Recibimos una solicitud para restablecer la contraseña de tu cuenta. Hacé clic en el botón para crear una
+              nueva.
             </Text>
 
             <Text style={paragraph}>
-              Si no solicitaste este cambio, podés ignorar este correo — tu contraseña no será
-              modificada.
+              Si no solicitaste este cambio, podés ignorar este correo — tu contraseña no será modificada.
             </Text>
 
             <Section style={buttonContainer}>
@@ -57,9 +56,7 @@ export function ResetPasswordEmail({ resetUrl }: ResetPasswordEmailProps) {
 
           <Section style={footer}>
             <Text style={footerText}>Este enlace expira en 1 hora.</Text>
-            <Text style={footerText}>
-              Si no solicitaste recuperar tu contraseña, ignorá este correo.
-            </Text>
+            <Text style={footerText}>Si no solicitaste recuperar tu contraseña, ignorá este correo.</Text>
             <Hr style={footerDivider} />
             <Text style={footerCopy}>© {new Date().getFullYear()} Flowy</Text>
           </Section>

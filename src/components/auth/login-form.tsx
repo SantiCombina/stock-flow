@@ -154,9 +154,7 @@ export function LoginForm() {
               </div>
             )}
             {loginError && (
-              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-                {loginError}
-              </div>
+              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{loginError}</div>
             )}
 
             <FormField

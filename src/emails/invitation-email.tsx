@@ -36,20 +36,16 @@ export function InvitationEmail({ registerUrl, roleName, inviterName }: Invitati
             <Text style={paragraph}>
               {inviterName ? (
                 <>
-                  <strong>{inviterName}</strong> te invitó a unirte al equipo como{' '}
-                  <strong>{roleName}</strong>.
+                  <strong>{inviterName}</strong> te invitó a unirte al equipo como <strong>{roleName}</strong>.
                 </>
               ) : (
                 <>
-                  Recibiste una invitación para unirte a Flowy como{' '}
-                  <strong>{roleName}</strong>.
+                  Recibiste una invitación para unirte a Flowy como <strong>{roleName}</strong>.
                 </>
               )}
             </Text>
 
-            <Text style={paragraph}>
-              Hacé clic en el botón para crear tu cuenta y empezar a trabajar.
-            </Text>
+            <Text style={paragraph}>Hacé clic en el botón para crear tu cuenta y empezar a trabajar.</Text>
 
             <Section style={buttonContainer}>
               <Button href={registerUrl} style={button}>
@@ -66,12 +62,8 @@ export function InvitationEmail({ registerUrl, roleName, inviterName }: Invitati
           </Section>
 
           <Section style={footer}>
-            <Text style={footerText}>
-              Este enlace es personal e intransferible. Expira en 7 días.
-            </Text>
-            <Text style={footerText}>
-              Si no esperabas esta invitación, podés ignorar este correo.
-            </Text>
+            <Text style={footerText}>Este enlace es personal e intransferible. Expira en 7 días.</Text>
+            <Text style={footerText}>Si no esperabas esta invitación, podés ignorar este correo.</Text>
             <Hr style={footerDivider} />
             <Text style={footerCopy}>© {new Date().getFullYear()} Flowy</Text>
           </Section>

@@ -68,9 +68,7 @@ export function ChangePasswordDialog() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Cambiar contraseña</DialogTitle>
-          <DialogDescription>
-            Ingresá tu contraseña actual y luego la nueva.
-          </DialogDescription>
+          <DialogDescription>Ingresá tu contraseña actual y luego la nueva.</DialogDescription>
         </DialogHeader>
 
         {success ? (
@@ -85,11 +83,7 @@ export function ChangePasswordDialog() {
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {error && (
-                <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-                  {error}
-                </div>
-              )}
+              {error && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>}
 
               <FormField
                 control={form.control}
@@ -134,12 +128,7 @@ export function ChangePasswordDialog() {
               />
 
               <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleOpenChange(false)}
-                  disabled={isExecuting}
-                >
+                <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={isExecuting}>
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={isExecuting}>

@@ -1,8 +1,7 @@
 import Link from 'next/link';
 
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
 import { ResetPasswordForm } from '@/components/auth/reset-password-form';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ResetPasswordPageProps {
   searchParams: Promise<{ token?: string }>;

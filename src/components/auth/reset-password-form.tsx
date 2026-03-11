@@ -55,9 +55,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>
-            )}
+            {error && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>}
 
             <FormField
               control={form.control}
