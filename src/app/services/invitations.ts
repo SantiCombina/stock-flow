@@ -7,6 +7,7 @@ interface ValidateInvitationResult {
   valid: boolean;
   invitation?: {
     id: number;
+    name: string;
     email: string;
     role: 'owner' | 'seller';
     createdBy: number | null;
@@ -14,12 +15,13 @@ interface ValidateInvitationResult {
   error?: string;
 }
 
-export async function createInvitation(email: string, ownerId: number): Promise<Invitation> {
+export async function createInvitation(name: string, email: string, ownerId: number): Promise<Invitation> {
   const payload = await getPayloadClient();
 
   const invitation = await payload.create({
     collection: 'invitations',
     data: {
+      name,
       email,
       role: 'seller',
       createdBy: ownerId,
@@ -55,6 +57,7 @@ export async function validateInvitation(token: string): Promise<ValidateInvitat
     valid: true,
     invitation: {
       id: invitation.id,
+      name: invitation.name,
       email: invitation.email,
       role: invitation.role as 'owner' | 'seller',
       createdBy: typeof invitation.createdBy === 'number' ? invitation.createdBy : (invitation.createdBy?.id ?? null),

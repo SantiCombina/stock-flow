@@ -10,34 +10,41 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { forgotPasswordSchema, type ForgotPasswordValues } from '@/schemas/auth/forgot-password-schema';
 import { loginSchema, type LoginValues } from '@/schemas/auth/login-schema';
 
-import { loginUser } from './actions';
+import { forgotPasswordAction, loginUser } from './actions';
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get('registered') === 'true';
+  const passwordReset = searchParams.get('password-reset') === 'true';
 
-  const { executeAsync, status } = useAction(loginUser);
-  const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<'login' | 'forgot' | 'forgot-sent'>('login');
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
 
-  const form = useForm<LoginValues>({
+  const { executeAsync: executeLogin, status: loginStatus } = useAction(loginUser);
+  const { executeAsync: executeForgot, status: forgotStatus } = useAction(forgotPasswordAction);
+
+  const loginForm = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+    defaultValues: { email: '', password: '' },
   });
 
-  async function onSubmit(data: LoginValues) {
-    setError(null);
+  const forgotForm = useForm<ForgotPasswordValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: '' },
+  });
+
+  async function onLoginSubmit(data: LoginValues) {
+    setLoginError(null);
     setRedirecting(false);
-    const result = await executeAsync(data);
+    const result = await executeLogin(data);
 
     if (result?.serverError) {
-      setError(result.serverError);
+      setLoginError(result.serverError);
       return;
     }
 
@@ -45,11 +52,87 @@ export function LoginForm() {
       setRedirecting(true);
       await Promise.all([router.push('/'), router.refresh()]);
     } else if (result?.data?.error) {
-      setError(result.data.error);
+      setLoginError(result.data.error);
     }
   }
 
-  const isExecuting = status === 'executing';
+  async function onForgotSubmit(data: ForgotPasswordValues) {
+    await executeForgot(data);
+    setView('forgot-sent');
+  }
+
+  function goToForgot() {
+    forgotForm.reset();
+    setView('forgot');
+  }
+
+  function goToLogin() {
+    loginForm.reset();
+    setLoginError(null);
+    setView('login');
+  }
+
+  const isLoginExecuting = loginStatus === 'executing';
+  const isForgotExecuting = forgotStatus === 'executing';
+
+  if (view === 'forgot' || view === 'forgot-sent') {
+    return (
+      <Card className="w-full max-w-sm shadow-sm">
+        <CardHeader className="text-center pb-2">
+          <CardTitle className="text-2xl font-bold">Recuperar contraseña</CardTitle>
+          <CardDescription>
+            {view === 'forgot-sent'
+              ? 'Revisá tu bandeja de entrada.'
+              : 'Te enviamos un enlace para restablecer tu contraseña.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {view === 'forgot-sent' ? (
+            <div className="space-y-4">
+              <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-700">
+                Si el email está registrado, recibirás un enlace en breve.
+              </div>
+              <Button variant="outline" className="w-full" onClick={goToLogin}>
+                Volver al inicio de sesión
+              </Button>
+            </div>
+          ) : (
+            <Form {...forgotForm}>
+              <form onSubmit={forgotForm.handleSubmit(onForgotSubmit)} className="space-y-4">
+                <FormField
+                  control={forgotForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="email@ejemplo.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit" className="w-full" disabled={isForgotExecuting}>
+                  {isForgotExecuting ? 'Enviando…' : 'Enviar enlace'}
+                </Button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={goToLogin}
+                    className="text-xs text-muted-foreground/60 hover:text-muted-foreground"
+                  >
+                    Volver al inicio de sesión
+                  </button>
+                </div>
+              </form>
+            </Form>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-sm shadow-sm">
@@ -58,17 +141,26 @@ export function LoginForm() {
         <CardDescription>Ingresá tus credenciales para acceder</CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+        <Form {...loginForm}>
+          <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-2">
             {registered && (
               <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-700">
                 Cuenta creada exitosamente. Ingresá tus credenciales.
               </div>
             )}
-            {error && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>}
+            {passwordReset && (
+              <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-700">
+                Contraseña actualizada. Ingresá con tu nueva contraseña.
+              </div>
+            )}
+            {loginError && (
+              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                {loginError}
+              </div>
+            )}
 
             <FormField
-              control={form.control}
+              control={loginForm.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -84,7 +176,7 @@ export function LoginForm() {
             />
 
             <FormField
-              control={form.control}
+              control={loginForm.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
@@ -99,9 +191,19 @@ export function LoginForm() {
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={isExecuting || redirecting}>
-              {isExecuting || redirecting ? 'Ingresando…' : 'Ingresar'}
+            <Button type="submit" className="w-full" disabled={isLoginExecuting || redirecting}>
+              {isLoginExecuting || redirecting ? 'Ingresando…' : 'Ingresar'}
             </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={goToForgot}
+                className="text-xs text-muted-foreground/60 hover:text-muted-foreground"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
           </form>
         </Form>
       </CardContent>

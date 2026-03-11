@@ -10,35 +10,25 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { registerSchema, type RegisterValues } from '@/schemas/auth/register-schema';
+import { resetPasswordSchema, type ResetPasswordValues } from '@/schemas/auth/reset-password-schema';
 
-import { registerUser } from './actions';
+import { resetPasswordAction } from './actions';
 
-interface RegisterFormProps {
-  token?: string;
-  email?: string;
-  role?: string;
+interface ResetPasswordFormProps {
+  token: string;
 }
 
-export function RegisterForm({ token, email, role }: RegisterFormProps) {
+export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const router = useRouter();
-
-  const { executeAsync, status } = useAction(registerUser);
+  const { executeAsync, status } = useAction(resetPasswordAction);
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      email: email ?? '',
-      password: '',
-      confirmPassword: '',
-      token: token ?? '',
-    },
+  const form = useForm<ResetPasswordValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { token, password: '', confirmPassword: '' },
   });
 
-  async function onSubmit(data: RegisterValues) {
-    if (!token || !email) return;
-
+  async function onSubmit(data: ResetPasswordValues) {
     setError(null);
     const result = await executeAsync(data);
 
@@ -48,44 +38,33 @@ export function RegisterForm({ token, email, role }: RegisterFormProps) {
     }
 
     if (result?.data?.success) {
-      router.push('/login?registered=true');
+      router.push('/login?password-reset=true');
     } else if (result?.data?.error) {
       setError(result.data.error);
     }
   }
 
-  if (!token || !email) {
-    return (
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Invitación Inválida</CardTitle>
-          <CardDescription>El enlace de invitación no es válido o ha expirado.</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
+  const isExecuting = status === 'executing';
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
-        <CardDescription>
-          Registrándose como <span className="font-medium capitalize">{role === 'owner' ? 'Dueño' : 'Vendedor'}</span>
-          <br />
-          <span className="text-foreground">{email}</span>
-        </CardDescription>
+    <Card className="w-full max-w-sm shadow-sm">
+      <CardHeader className="text-center pb-2">
+        <CardTitle className="text-2xl font-bold">Nueva contraseña</CardTitle>
+        <CardDescription>Ingresá tu nueva contraseña para acceder a tu cuenta.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {error && <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>}
+            {error && (
+              <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>
+            )}
 
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contraseña</FormLabel>
+                  <FormLabel>Nueva contraseña</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
@@ -99,7 +78,7 @@ export function RegisterForm({ token, email, role }: RegisterFormProps) {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirmar Contraseña</FormLabel>
+                  <FormLabel>Confirmar contraseña</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
@@ -108,8 +87,8 @@ export function RegisterForm({ token, email, role }: RegisterFormProps) {
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={status === 'executing'}>
-              {status === 'executing' ? 'Creando cuenta...' : 'Crear Cuenta'}
+            <Button type="submit" className="w-full" disabled={isExecuting}>
+              {isExecuting ? 'Guardando…' : 'Guardar contraseña'}
             </Button>
           </form>
         </Form>

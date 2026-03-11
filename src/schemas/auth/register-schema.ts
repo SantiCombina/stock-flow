@@ -2,18 +2,6 @@ import { z } from 'zod';
 
 export const registerSchema = z
   .object({
-    name: z
-      .string({
-        required_error: 'El nombre es requerido.',
-        invalid_type_error: 'El nombre debe ser una cadena de texto.',
-      })
-      .trim()
-      .min(2, {
-        message: 'El nombre debe tener al menos 2 caracteres.',
-      })
-      .max(100, {
-        message: 'El nombre debe tener como máximo 100 caracteres.',
-      }),
     password: z
       .string({
         required_error: 'La contraseña es requerida.',

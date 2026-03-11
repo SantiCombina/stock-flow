@@ -84,6 +84,11 @@ export const Invitations: CollectionConfig = {
   },
   fields: [
     {
+      name: 'name',
+      type: 'text',
+      required: true,
+    },
+    {
       name: 'email',
       type: 'email',
       required: true,

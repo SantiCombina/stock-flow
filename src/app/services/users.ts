@@ -142,3 +142,34 @@ export async function deleteSeller(sellerId: number): Promise<void> {
     overrideAccess: true,
   });
 }
+
+export async function forgotPassword(email: string): Promise<void> {
+  const payload = await getPayloadClient();
+
+  await payload.forgotPassword({
+    collection: 'users',
+    data: { email },
+    disableEmail: false,
+  });
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  const payload = await getPayloadClient();
+
+  await payload.resetPassword({
+    collection: 'users',
+    data: { token, password },
+    overrideAccess: true,
+  });
+}
+
+export async function changePassword(userId: number, newPassword: string): Promise<void> {
+  const payload = await getPayloadClient();
+
+  await payload.update({
+    collection: 'users',
+    id: userId,
+    data: { password: newPassword },
+    overrideAccess: true,
+  });
+}

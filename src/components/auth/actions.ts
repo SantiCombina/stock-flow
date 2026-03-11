@@ -3,10 +3,17 @@
 import { cookies } from 'next/headers';
 
 import { markInvitationAsUsed, validateInvitation } from '@/app/services/invitations';
-import { createUser, loginUser as loginUserService } from '@/app/services/users';
+import {
+  createUser,
+  forgotPassword as forgotPasswordService,
+  loginUser as loginUserService,
+  resetPassword as resetPasswordService,
+} from '@/app/services/users';
 import { actionClient } from '@/lib/safe-action';
+import { forgotPasswordSchema } from '@/schemas/auth/forgot-password-schema';
 import { loginSchema } from '@/schemas/auth/login-schema';
 import { registerSchema } from '@/schemas/auth/register-schema';
+import { resetPasswordSchema } from '@/schemas/auth/reset-password-schema';
 
 export const loginUser = actionClient.schema(loginSchema).action(async ({ parsedInput }) => {
   const { email, password } = parsedInput;
@@ -30,7 +37,7 @@ export const loginUser = actionClient.schema(loginSchema).action(async ({ parsed
 });
 
 export const registerUser = actionClient.schema(registerSchema).action(async ({ parsedInput }) => {
-  const { name, email, password, token } = parsedInput;
+  const { email, password, token } = parsedInput;
 
   const invitationResult = await validateInvitation(token);
 
@@ -45,7 +52,7 @@ export const registerUser = actionClient.schema(registerSchema).action(async ({ 
   }
 
   const userResult = await createUser({
-    name,
+    name: invitation.name,
     email,
     password,
     role: invitation.role,
@@ -60,3 +67,21 @@ export const registerUser = actionClient.schema(registerSchema).action(async ({ 
 
   return { success: true };
 });
+
+export const forgotPasswordAction = actionClient
+  .schema(forgotPasswordSchema)
+  .action(async ({ parsedInput }) => {
+    await forgotPasswordService(parsedInput.email);
+    return { success: true };
+  });
+
+export const resetPasswordAction = actionClient
+  .schema(resetPasswordSchema)
+  .action(async ({ parsedInput }) => {
+    try {
+      await resetPasswordService(parsedInput.token, parsedInput.password);
+      return { success: true };
+    } catch {
+      return { error: 'El enlace de recuperación es inválido o ha expirado.' };
+    }
+  });

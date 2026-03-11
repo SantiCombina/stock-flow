@@ -2,9 +2,10 @@
 
 import { useUser } from '@/components/providers/user-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { PageHeader } from '../layout/page-header';
+import { ChangePasswordDialog } from './change-password-dialog';
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Administrador',
@@ -55,6 +56,9 @@ export function ProfileSection() {
               </div>
             </div>
           </CardContent>
+          <CardFooter>
+            <ChangePasswordDialog />
+          </CardFooter>
         </Card>
       </main>
     </div>

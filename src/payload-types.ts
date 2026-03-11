@@ -197,6 +197,7 @@ export interface User {
  */
 export interface Invitation {
   id: number;
+  name: string;
   email: string;
   role: 'owner' | 'seller';
   token?: string | null;
@@ -217,7 +218,6 @@ export interface Media {
   id: number;
   alt: string;
   _key?: string | null;
-  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -724,6 +724,7 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "invitations_select".
  */
 export interface InvitationsSelect<T extends boolean = true> {
+  name?: T;
   email?: T;
   role?: T;
   token?: T;
@@ -740,7 +741,6 @@ export interface InvitationsSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   _key?: T;
-  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

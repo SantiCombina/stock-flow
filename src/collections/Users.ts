@@ -8,6 +8,16 @@ export const Users: CollectionConfig = {
   },
   auth: {
     tokenExpiration: 60 * 60 * 24 * 30,
+    forgotPassword: {
+      generateEmailHTML: async (args) => {
+        const token = args?.token;
+        const { render } = await import('@react-email/render');
+        const { ResetPasswordEmail } = await import('@/emails/reset-password-email');
+        const resetUrl = `${process.env.NEXT_PUBLIC_SERVER_URL}/reset-password?token=${token ?? ''}`;
+        return render(ResetPasswordEmail({ resetUrl }));
+      },
+      generateEmailSubject: () => 'Recuperá tu contraseña — Flowy',
+    },
   },
   access: {
     create: ({ req: { user } }) => user?.role === 'admin',
