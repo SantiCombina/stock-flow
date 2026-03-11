@@ -29,7 +29,9 @@
       "WebSearch",
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:www.answeroverflow.com)",
-      "Bash(grep -r serverURL /c/Users/santi/Documents/Workspace/flowy/src --include=*.ts --include=*.tsx)"
+      "Bash(grep -r serverURL /c/Users/santi/Documents/Workspace/flowy/src --include=*.ts --include=*.tsx)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm remove:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\santi\\.claude\\projects\\c--Users-santi-Documents-Workspace-stocker\\memory"

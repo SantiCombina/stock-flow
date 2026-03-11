@@ -66,7 +66,7 @@ export const Invitations: CollectionConfig = {
           try {
             const html = await render(InvitationEmail({ registerUrl, roleName }));
             const { error } = await resend.emails.send({
-              from: process.env.EMAIL_FROM || 'Flowy <noreply@Flowy.com>',
+              from: `Flowy <${process.env.EMAIL_FROM ?? 'noreply@flowy.ar'}>`,
               to: doc.email,
               subject: 'Invitación a Flowy',
               html,
