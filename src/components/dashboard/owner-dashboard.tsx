@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+import { PaymentMethodsChart } from './payment-methods-chart';
 import { PeriodSelector } from './period-selector';
 import { SalesChart } from './sales-chart';
 import { StatCard } from './stat-card';
@@ -16,12 +17,6 @@ const PAYMENT_LABELS: Record<string, string> = {
   cash: 'Efectivo',
   transfer: 'Transferencia',
   check: 'Cheque',
-};
-
-const PAYMENT_COLORS: Record<string, string> = {
-  cash: 'bg-emerald-500',
-  transfer: 'bg-blue-500',
-  check: 'bg-violet-500',
 };
 
 const PERIOD_REVENUE_LABEL: Record<Period, string> = {
@@ -49,14 +44,15 @@ interface OwnerDashboardProps {
   stats: OwnerDashboardStats;
   userName: string;
   period: Period;
+  onPeriodChange: (period: Period) => void;
+  isPending: boolean;
 }
 
-export function OwnerDashboard({ stats, userName, period }: OwnerDashboardProps) {
+export function OwnerDashboard({ stats, userName, period, onPeriodChange, isPending }: OwnerDashboardProps) {
   const now = new Date();
   const monthName = now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
   const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
-  const totalPayments = stats.paymentMethods.cash + stats.paymentMethods.transfer + stats.paymentMethods.check;
   const maxSellerTotal = stats.salesBySeller[0]?.total ?? 1;
 
   return (
@@ -64,10 +60,12 @@ export function OwnerDashboard({ stats, userName, period }: OwnerDashboardProps)
       <PageHeader
         title={`Buen día, ${userName.split(' ')[0]}!`}
         description={`Resumen de tu negocio · ${capitalizedMonth}`}
-        actions={<PeriodSelector period={period} />}
+        actions={<PeriodSelector period={period} onPeriodChange={onPeriodChange} disabled={isPending} />}
       />
 
-      <main className="flex-1 space-y-6 px-4 pb-8 sm:px-6">
+      <main
+        className={`flex-1 space-y-6 px-4 pb-8 sm:px-6 transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'}`}
+      >
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             title={PERIOD_REVENUE_LABEL[period]}
@@ -121,29 +119,8 @@ export function OwnerDashboard({ stats, userName, period }: OwnerDashboardProps)
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Métodos de pago — este período</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5 pt-2">
-              {totalPayments === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Sin ventas este período</p>
-              ) : (
-                Object.entries(stats.paymentMethods).map(([method, amount]) => {
-                  const pct = totalPayments > 0 ? Math.round((amount / totalPayments) * 100) : 0;
-                  return (
-                    <div key={method} className="space-y-1.5">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">{PAYMENT_LABELS[method]}</span>
-                        <span className="font-medium">{pct}%</span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-muted">
-                        <div
-                          className={`h-full rounded-full ${PAYMENT_COLORS[method]} transition-all duration-700`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground">{formatCurrency(amount)}</p>
-                    </div>
-                  );
-                })
-              )}
+            <CardContent className="pt-2">
+              <PaymentMethodsChart {...stats.paymentMethods} />
             </CardContent>
           </Card>
         </div>

@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-
 import type { Period } from '@/app/services/dashboard';
 import { cn } from '@/lib/utils';
 
@@ -14,22 +12,26 @@ const PERIODS: { value: Period; label: string }[] = [
 
 interface PeriodSelectorProps {
   period: Period;
+  onPeriodChange: (period: Period) => void;
+  disabled?: boolean;
 }
 
-export function PeriodSelector({ period }: PeriodSelectorProps) {
+export function PeriodSelector({ period, onPeriodChange, disabled }: PeriodSelectorProps) {
   return (
     <div className="flex gap-0.5 rounded-md border bg-muted p-0.5 w-fit">
       {PERIODS.map(({ value, label }) => (
-        <Link
+        <button
           key={value}
-          href={`?period=${value}`}
+          type="button"
+          disabled={disabled}
+          onClick={() => onPeriodChange(value)}
           className={cn(
-            'px-2 py-0.5 rounded text-xs font-medium transition-colors',
+            'px-2 py-0.5 rounded text-xs font-medium transition-colors disabled:pointer-events-none',
             period === value ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground',
           )}
         >
           {label}
-        </Link>
+        </button>
       ))}
     </div>
   );

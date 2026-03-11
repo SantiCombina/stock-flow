@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+import { PaymentMethodsChart } from './payment-methods-chart';
 import { PeriodSelector } from './period-selector';
 import { SalesChart } from './sales-chart';
 import { StatCard } from './stat-card';
@@ -36,9 +37,11 @@ interface SellerDashboardProps {
   stats: SellerDashboardStats;
   userName: string;
   period: Period;
+  onPeriodChange: (period: Period) => void;
+  isPending: boolean;
 }
 
-export function SellerDashboard({ stats, userName, period }: SellerDashboardProps) {
+export function SellerDashboard({ stats, userName, period, onPeriodChange, isPending }: SellerDashboardProps) {
   const maxInventoryQty = stats.inventory.length > 0 ? Math.max(...stats.inventory.map((i) => i.quantity)) : 1;
   const maxTopProductQty = stats.topProducts.length > 0 ? Math.max(...stats.topProducts.map((p) => p.quantity)) : 1;
 
@@ -47,10 +50,12 @@ export function SellerDashboard({ stats, userName, period }: SellerDashboardProp
       <PageHeader
         title={`¡Hola, ${userName.split(' ')[0]}!`}
         description="Tu desempeño de este período"
-        actions={<PeriodSelector period={period} />}
+        actions={<PeriodSelector period={period} onPeriodChange={onPeriodChange} disabled={isPending} />}
       />
 
-      <main className="flex-1 space-y-6 px-4 pb-8 sm:px-6">
+      <main
+        className={`flex-1 space-y-6 px-4 pb-8 sm:px-6 transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'}`}
+      >
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             title={PERIOD_REVENUE_LABEL[period]}
@@ -100,36 +105,8 @@ export function SellerDashboard({ stats, userName, period }: SellerDashboardProp
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Métodos de pago — este período</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5 pt-2">
-              {stats.paymentMethods.cash + stats.paymentMethods.transfer + stats.paymentMethods.check === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Sin ventas este período</p>
-              ) : (
-                Object.entries(stats.paymentMethods).map(([method, amount]) => {
-                  const total = stats.paymentMethods.cash + stats.paymentMethods.transfer + stats.paymentMethods.check;
-                  const pct = total > 0 ? Math.round((amount / total) * 100) : 0;
-                  return (
-                    <div key={method} className="space-y-1.5">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">{PAYMENT_LABELS[method]}</span>
-                        <span className="font-medium">{pct}%</span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-muted">
-                        <div
-                          className={`h-full rounded-full transition-all duration-700 ${
-                            method === 'cash'
-                              ? 'bg-emerald-500'
-                              : method === 'transfer'
-                                ? 'bg-blue-500'
-                                : 'bg-violet-500'
-                          }`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground">{formatCurrency(amount)}</p>
-                    </div>
-                  );
-                })
-              )}
+            <CardContent className="pt-2">
+              <PaymentMethodsChart {...stats.paymentMethods} />
             </CardContent>
           </Card>
         </div>

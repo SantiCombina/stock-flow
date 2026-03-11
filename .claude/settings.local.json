@@ -39,10 +39,12 @@
       "Bash(ls -la /c/Users/santi/Documents/Workspace/flowy/src/app/\\\\\\(frontend\\\\\\)/\\\\\\(main\\\\\\)/settings/)",
       "Bash(grep -r \"forgot-password\\\\|reset-password\\\\|/api/users\" /c/Users/santi/Documents/Workspace/flowy/src --include=*.ts --include=*.tsx)",
       "Bash(cat /c/Users/santi/Documents/Workspace/flowy/src/app/\\\\\\(frontend\\\\\\)/\\\\\\(auth\\\\\\)/login/page.tsx)",
-      "Bash(del \"c:\\\\Users\\\\santi\\\\Documents\\\\Workspace\\\\flowy\\\\src\\\\components\\\\auth\\\\forgot-password-form.tsx\")"
+      "Bash(del \"c:\\\\Users\\\\santi\\\\Documents\\\\Workspace\\\\flowy\\\\src\\\\components\\\\auth\\\\forgot-password-form.tsx\")",
+      "Read(//c/Users/santi/.claude/plans/**)"
     ],
     "additionalDirectories": [
-      "c:\\Users\\santi\\.claude\\projects\\c--Users-santi-Documents-Workspace-stocker\\memory"
+      "c:\\Users\\santi\\.claude\\projects\\c--Users-santi-Documents-Workspace-stocker\\memory",
+      "c:\\Users\\santi\\.claude\\plans"
     ]
   }
 }
