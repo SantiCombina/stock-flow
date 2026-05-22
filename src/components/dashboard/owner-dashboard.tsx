@@ -92,21 +92,13 @@ export function OwnerDashboard({ stats, userName, period, onPeriodChange, isPend
             delay={0}
           />
           <StatCard
-            title={PERIOD_DIFF_LABEL[period]}
-            value={formatCurrency(stats.revenue.current - stats.totalCollected)}
-            subtitle={`${formatCurrency(stats.totalCollected)} cobrado`}
-            icon={Receipt}
-            gradient="from-amber-500 to-orange-600"
-            delay={75}
-          />
-          <StatCard
             title="Ventas realizadas"
             value={String(stats.salesCount.current)}
             change={stats.salesCount.change}
             period={period}
             icon={ShoppingCart}
             gradient="from-blue-500 to-indigo-600"
-            delay={150}
+            delay={75}
           />
           <StatCard
             title="Clientes totales"
@@ -117,7 +109,15 @@ export function OwnerDashboard({ stats, userName, period, onPeriodChange, isPend
                 : undefined
             }
             icon={Users}
-            gradient="from-violet-500 to-purple-600"
+            gradient="from-rose-500 to-pink-600"
+            delay={150}
+          />
+          <StatCard
+            title={PERIOD_DIFF_LABEL[period]}
+            value={formatCurrency(stats.revenue.current - stats.totalCollected)}
+            subtitle={`${formatCurrency(stats.totalCollected)} cobrado`}
+            icon={Receipt}
+            gradient="from-amber-500 to-orange-600"
             delay={225}
           />
         </div>

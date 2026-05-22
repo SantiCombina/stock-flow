@@ -86,7 +86,7 @@ export function SellerDashboard({ stats, userName, period, onPeriodChange, isPen
             value={String(stats.clientsCount)}
             subtitle="en tu cartera"
             icon={Users}
-            gradient="from-violet-500 to-purple-600"
+            gradient="from-rose-500 to-pink-600"
             delay={150}
           />
           <StatCard
