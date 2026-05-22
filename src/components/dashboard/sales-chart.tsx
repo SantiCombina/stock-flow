@@ -5,6 +5,36 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import type { DayData, Period } from '@/app/services/dashboard';
 import { formatCurrency } from '@/lib/utils';
 
+const MONTH_SHORT: Record<number, string> = {
+  1: 'Ene',
+  2: 'Feb',
+  3: 'Mar',
+  4: 'Abr',
+  5: 'May',
+  6: 'Jun',
+  7: 'Jul',
+  8: 'Ago',
+  9: 'Sep',
+  10: 'Oct',
+  11: 'Nov',
+  12: 'Dic',
+};
+
+const MONTH_LONG: Record<number, string> = {
+  1: 'Enero',
+  2: 'Febrero',
+  3: 'Marzo',
+  4: 'Abril',
+  5: 'Mayo',
+  6: 'Junio',
+  7: 'Julio',
+  8: 'Agosto',
+  9: 'Septiembre',
+  10: 'Octubre',
+  11: 'Noviembre',
+  12: 'Diciembre',
+};
+
 const formatCurrencyShort = (value: number) => {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000) return `$${Math.round(value / 1_000)}K`;
@@ -13,7 +43,8 @@ const formatCurrencyShort = (value: number) => {
 
 function formatXAxisTick(value: string, period: Period): string {
   if (period === 'year') {
-    return new Date(value + '-02').toLocaleDateString('es-AR', { month: 'short' });
+    const month = parseInt(value.split('-')[1] ?? '1', 10);
+    return MONTH_SHORT[month] ?? '';
   }
   const parts = value.split('-');
   return `${parseInt(parts[2] ?? '0')}/${parseInt(parts[1] ?? '0')}`;
@@ -21,9 +52,9 @@ function formatXAxisTick(value: string, period: Period): string {
 
 function formatTooltipLabel(label: string, period: Period): string {
   if (period === 'year') {
-    const d = new Date(label + '-02');
-    const month = d.toLocaleDateString('es-AR', { month: 'long' });
-    return `${month.charAt(0).toUpperCase() + month.slice(1)} ${d.getFullYear()}`;
+    const year = label.split('-')[0];
+    const month = parseInt(label.split('-')[1] ?? '1', 10);
+    return `${MONTH_LONG[month] ?? ''} ${year}`;
   }
   const parts = label.split('-');
   return `${parseInt(parts[2] ?? '0')}/${parseInt(parts[1] ?? '0')}/${parts[0]}`;
@@ -65,7 +96,7 @@ export function SalesChart({ data, period, color = '#059669', gradientId }: Sale
             tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
             tickLine={false}
             axisLine={false}
-            interval={period === 'year' ? 0 : 4}
+            interval={period === 'year' ? 1 : 4}
           />
           <YAxis
             tickFormatter={formatCurrencyShort}

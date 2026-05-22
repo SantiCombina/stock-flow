@@ -1,6 +1,5 @@
 'use client';
 
-import { keepPreviousData } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import type { OwnerDashboardStats, Period, SellerDashboardStats } from '@/app/services/dashboard';
@@ -17,6 +16,7 @@ type DashboardShellProps =
       userId: number;
       userName: string;
       initialStats: OwnerDashboardStats;
+      initialPeriod: Period;
     }
   | {
       kind: 'seller';
@@ -24,21 +24,33 @@ type DashboardShellProps =
       ownerId: number;
       userName: string;
       initialStats: SellerDashboardStats;
+      initialPeriod: Period;
     };
 
-function OwnerDashboardShell({ userName, initialStats }: { userName: string; initialStats: OwnerDashboardStats }) {
-  const [period, setPeriod] = useState<Period>('month');
+function OwnerDashboardShell({
+  userName,
+  initialStats,
+  initialPeriod,
+}: {
+  userName: string;
+  initialStats: OwnerDashboardStats;
+  initialPeriod: Period;
+}) {
+  const [period, setPeriod] = useState<Period>(initialPeriod);
 
   const { data, isFetching } = useServerActionQuery({
     queryKey: queryKeys.dashboard.owner(period),
     queryFn: () => getOwnerDashboardStatsAction({ period }),
-    initialData: { success: true, stats: initialStats },
-    placeholderData: keepPreviousData,
+    initialData: period === initialPeriod ? { success: true, stats: initialStats } : undefined,
+    placeholderData: undefined,
     staleTime: 60_000,
   });
 
   function handlePeriodChange(newPeriod: Period) {
     setPeriod(newPeriod);
+    const url = new URL(window.location.href);
+    url.searchParams.set('period', newPeriod);
+    window.history.pushState(null, '', url.toString());
   }
 
   const stats = data?.success ? data.stats : initialStats;
@@ -60,23 +72,28 @@ function SellerDashboardShell({
   ownerId,
   userName,
   initialStats,
+  initialPeriod,
 }: {
   ownerId: number;
   userName: string;
   initialStats: SellerDashboardStats;
+  initialPeriod: Period;
 }) {
-  const [period, setPeriod] = useState<Period>('month');
+  const [period, setPeriod] = useState<Period>(initialPeriod);
 
   const { data, isFetching } = useServerActionQuery({
     queryKey: queryKeys.dashboard.seller(period),
     queryFn: () => getSellerDashboardStatsAction({ period, ownerId }),
-    initialData: { success: true, stats: initialStats },
-    placeholderData: keepPreviousData,
+    initialData: period === initialPeriod ? { success: true, stats: initialStats } : undefined,
+    placeholderData: undefined,
     staleTime: 30000,
   });
 
   function handlePeriodChange(newPeriod: Period) {
     setPeriod(newPeriod);
+    const url = new URL(window.location.href);
+    url.searchParams.set('period', newPeriod);
+    window.history.pushState(null, '', url.toString());
   }
 
   const stats = data?.success ? data.stats : initialStats;
@@ -96,8 +113,21 @@ function SellerDashboardShell({
 
 export function DashboardShell(props: DashboardShellProps) {
   if (props.kind === 'owner') {
-    return <OwnerDashboardShell userName={props.userName} initialStats={props.initialStats} />;
+    return (
+      <OwnerDashboardShell
+        userName={props.userName}
+        initialStats={props.initialStats}
+        initialPeriod={props.initialPeriod}
+      />
+    );
   }
 
-  return <SellerDashboardShell ownerId={props.ownerId} userName={props.userName} initialStats={props.initialStats} />;
+  return (
+    <SellerDashboardShell
+      ownerId={props.ownerId}
+      userName={props.userName}
+      initialStats={props.initialStats}
+      initialPeriod={props.initialPeriod}
+    />
+  );
 }

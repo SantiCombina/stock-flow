@@ -1,4 +1,4 @@
-import { AlertTriangle, ImageOff, Package, ShoppingCart, TrendingUp, Users, Wallet } from 'lucide-react';
+import { AlertTriangle, ImageOff, Receipt, ShoppingCart, TrendingUp, Users, Wallet } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
@@ -39,6 +39,13 @@ const PERIOD_NEW_CLIENTS_LABEL: Record<Period, string> = {
   week: 'nuevos esta semana',
   month: 'nuevos este mes',
   year: 'nuevos este año',
+};
+
+const PERIOD_DIFF_LABEL: Record<Period, string> = {
+  day: 'Diferencia de hoy',
+  week: 'Diferencia de la semana',
+  month: 'Diferencia del mes',
+  year: 'Diferencia del año',
 };
 
 const PERIOD_CHART_LABEL: Record<Period, string> = {
@@ -85,13 +92,21 @@ export function OwnerDashboard({ stats, userName, period, onPeriodChange, isPend
             delay={0}
           />
           <StatCard
+            title={PERIOD_DIFF_LABEL[period]}
+            value={formatCurrency(stats.revenue.current - stats.totalCollected)}
+            subtitle={`${formatCurrency(stats.totalCollected)} cobrado`}
+            icon={Receipt}
+            gradient="from-amber-500 to-orange-600"
+            delay={75}
+          />
+          <StatCard
             title="Ventas realizadas"
             value={String(stats.salesCount.current)}
             change={stats.salesCount.change}
             period={period}
             icon={ShoppingCart}
             gradient="from-blue-500 to-indigo-600"
-            delay={75}
+            delay={150}
           />
           <StatCard
             title="Clientes totales"
@@ -103,14 +118,6 @@ export function OwnerDashboard({ stats, userName, period, onPeriodChange, isPend
             }
             icon={Users}
             gradient="from-violet-500 to-purple-600"
-            delay={150}
-          />
-          <StatCard
-            title="Variantes con stock"
-            value={String(stats.warehouseVariantsWithStock)}
-            subtitle={`de ${stats.activeProducts} variantes totales`}
-            icon={Package}
-            gradient="from-amber-500 to-orange-600"
             delay={225}
           />
         </div>

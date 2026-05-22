@@ -48,6 +48,7 @@ export interface OwnerDashboardStats {
   warehouseVariantsWithStock: number;
   sellersCount: number;
   sellersWithInventory: number;
+  totalCollected: number;
   salesByDay: DayData[];
   salesBySeller: SellerPerf[];
   paymentMethods: { cash: number; transfer: number; check: number };
@@ -167,7 +168,8 @@ export async function getOwnerDashboardStats(ownerId: number, period: Period = '
       let revCurrent = 0,
         revPrevious = 0,
         salesCurrent = 0,
-        salesPrevious = 0;
+        salesPrevious = 0,
+        totalCollected = 0;
 
       const chartData = buildChartData(period, chartStart);
       const chartMap = new Map<string, DayData>();
@@ -183,6 +185,7 @@ export async function getOwnerDashboardStats(ownerId: number, period: Period = '
         if (saleDate >= currentStart) {
           revCurrent += sale.total;
           salesCurrent++;
+          totalCollected += sale.amountPaid ?? 0;
           if (sale.paymentMethod) paymentMethods[sale.paymentMethod] += sale.total;
 
           const existingSeller = sellerMap.get(sale.sellerName);
@@ -252,6 +255,7 @@ export async function getOwnerDashboardStats(ownerId: number, period: Period = '
         warehouseVariantsWithStock,
         sellersCount: sellers.length,
         sellersWithInventory: sellersInventory.length,
+        totalCollected,
         salesByDay: chartData,
         salesBySeller: Array.from(sellerMap.values()).sort((a, b) => b.total - a.total),
         paymentMethods,

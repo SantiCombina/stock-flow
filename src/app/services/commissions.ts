@@ -232,6 +232,6 @@ export async function createCommissionPayment(
     overrideAccess: true,
   });
 
-  revalidateTag('seller-dashboard');
-  revalidateTag('owner-dashboard');
+  revalidateTag('dashboard');
+  revalidateTag('dashboard');
 }

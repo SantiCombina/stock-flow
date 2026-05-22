@@ -353,8 +353,8 @@ export async function createSale(sellerId: number, ownerId: number, data: SaleVa
   });
 
   try {
-    revalidateTag('owner-dashboard');
-    revalidateTag('seller-dashboard');
+    revalidateTag('dashboard');
+    revalidateTag('dashboard');
     revalidateTag('product-demand');
   } catch {
     // revalidation failure should not break the operation
@@ -666,8 +666,8 @@ export async function deleteSale(saleId: number, callerId: number, callerRole: '
   }
 
   try {
-    revalidateTag('owner-dashboard');
-    revalidateTag('seller-dashboard');
+    revalidateTag('dashboard');
+    revalidateTag('dashboard');
     revalidateTag('product-demand');
   } catch {
     // revalidation failure should not break the operation
@@ -857,8 +857,8 @@ export async function editSaleFull(
   }
 
   try {
-    revalidateTag('owner-dashboard');
-    revalidateTag('seller-dashboard');
+    revalidateTag('dashboard');
+    revalidateTag('dashboard');
     revalidateTag('product-demand');
   } catch {
     // revalidation failure should not break the operation
